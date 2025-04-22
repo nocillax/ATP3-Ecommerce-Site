@@ -1,3 +1,4 @@
+import { UsersModule } from './users/users.module';
 import { CategoriesModule } from './categories/categories.module';
 import { CategoriesService } from './categories/categories.service';
 import { CategoriesController } from './categories/categories.controller';
@@ -11,7 +12,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
-      TypeOrmModule.forRoot({
+    UsersModule,
+    TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
       port: 5432,
@@ -21,8 +23,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     }),
-    CategoriesModule, 
-    ProductsModule, 
+    CategoriesModule,
+    ProductsModule,
   ],
   controllers: [
     AppController],
