@@ -1,0 +1,20 @@
+Key Points: 
+
+1. Global Serialization Interceptor is created - 
+    npm install class-transformer reflect-metadata
+
+    tsconfig.json -
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+
+    file created - 
+    src/interceptors/serialize.interceptor.ts
+
+    Enable it globally in your main.ts - 
+    app.useGlobalInterceptors(new SerializeInterceptor());
+
+2. BCrypt is installed -
+    npm install bcrypt
+
+    import it this way - 
+    import * as bcrypt from 'bcrypt';

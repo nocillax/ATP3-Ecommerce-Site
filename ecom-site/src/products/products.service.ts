@@ -40,8 +40,15 @@ export class ProductsService {
         return await this.productRepo.save(product);
     }
 
-    getProducts(): Promise<Product[]> {
-        return this.productRepo.find();
+    async getProducts(): Promise<Product[]> {
+
+        const products = await this.productRepo.find();
+
+        if (products.length === 0) {
+            throw new NotFoundException('No products found');
+        }
+        
+        return products;
     }
 
     async getProductById(id: number): Promise<Product | null> {

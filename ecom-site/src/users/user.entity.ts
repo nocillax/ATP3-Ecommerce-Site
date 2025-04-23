@@ -1,4 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Exclude } from "class-transformer";
 
 
 export enum UserRole {
@@ -9,6 +10,7 @@ export enum UserRole {
 @Entity()
 export class User {
     @PrimaryGeneratedColumn()
+    @Exclude({ toPlainOnly: true }) // Exclude id ONLY from the response
     id: number;
 
     @Column()
@@ -18,6 +20,7 @@ export class User {
     email: string;
 
     @Column()
+    @Exclude({ toPlainOnly: true }) // Exclude password ONLY from the response 
     password: string;
 
     @Column({ nullable: true })

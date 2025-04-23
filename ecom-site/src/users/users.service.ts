@@ -2,12 +2,13 @@
 https://docs.nestjs.com/providers#services
 */
 
-import { Injectable } from '@nestjs/common';
-import { UsersRepository } from './users.repository';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './DTO/create-user.dto';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
+import * as bcrypt from 'bcrypt';
+
 
 @Injectable()
 export class UsersService { 
@@ -17,9 +18,34 @@ export class UsersService {
         private readonly userRepo: Repository<User>
     ) {}
 
-    createUser(dto: CreateUserDto): Promise<User> {
-        return this.userRepo.save(dto);
+    async createUser(dto: CreateUserDto): Promise<User> {
+
+        const salt = 10;
+        const hashedPassword = await bcrypt.hash(dto.password, salt);
+
+        const user = this.userRepo.create({
+
+            ...dto,
+            password: hashedPassword
+        });
+
+        return await this.userRepo.save(user);
     }
+
+    async getAllUsers(): Promise<User[]> {
+
+        const users = await this.userRepo.find();
+
+        if (users.length === 0) {
+            throw new NotFoundException('No users found');
+        }
+
+        return users;
+    }
+
+
+
+
 
 
     
