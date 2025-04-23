@@ -24,16 +24,13 @@ export class ProductsService {
     async addProduct(dto: CreateProductDto): Promise<Product> {
         const categories = await this.categoriesService.getCategoriesByIds(dto.categoryIds);
 
-        if(!categories.length){ // if categories is empty
+        if(!categories || categories.length === 0){ // if categories is empty
             
             throw new NotFoundException('No categories found for the provided IDs');    
         }
 
         const product = this.productRepo.create({
-            name: dto.name,
-            price: dto.price,
-            quantity: dto.quantity,
-            rating: dto.rating,
+            ...dto,
             categories: categories,
         });
 
@@ -52,7 +49,10 @@ export class ProductsService {
     }
 
     async getProductById(id: number): Promise<Product | null> {
-        const product = await this.productRepo.findOne({ where: { id } });
+        const product = await this.productRepo.findOne({ 
+            where: { id },
+            relations: ['categories', 'reviews', 'reviews.user']
+        });
         
         if (!product) {
             throw new NotFoundException(`Product with id ${id} not found`);
@@ -108,7 +108,7 @@ export class ProductsService {
         }
 
         await this.productRepo.save(product);
-        
+
         return { message: `Product with id ${id} updated successfully` };
 
     }

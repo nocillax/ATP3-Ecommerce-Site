@@ -1,5 +1,8 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Exclude } from "class-transformer";
+import { Cart } from "src/carts/cart.entity";
+import { Review } from "src/reviews/review.entity";
+import { Order } from "src/orders/order.entity";
 
 
 export enum UserRole {
@@ -10,7 +13,7 @@ export enum UserRole {
 @Entity()
 export class User {
     @PrimaryGeneratedColumn()
-    @Exclude({ toPlainOnly: true }) // Exclude id ONLY from the response
+    //@Exclude({ toPlainOnly: true }) // Exclude id ONLY from the response
     id: number;
 
     @Column()
@@ -33,14 +36,13 @@ export class User {
     })
     role: UserRole;
 
-
-/*     @OneToMany(() => Review, (review) => review.user)
-    reviews: Review[]; // Assuming you have a Review entity defined elsewhere
-
     @OneToMany(() => Cart, (cart) => cart.user)
     cart: Cart[];
 
-    @OneToMany(() => Order, (order) => order.user)
-    orders: Order[]; */
-    
+    @OneToMany(() => Review, review => review.user)
+    reviews: Review[];
+
+    @OneToMany(() => Order, order => order.user)
+    orders: Order[];
+
 }
