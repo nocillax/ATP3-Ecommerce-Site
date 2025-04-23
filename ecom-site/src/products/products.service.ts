@@ -81,7 +81,7 @@ export class ProductsService {
     }
 
 
-    async updateProduct(id: number, updateData: UpdateProductDto): Promise<{ message: string }> {
+    async updateProduct(id: number, dto: UpdateProductDto): Promise<{ message: string }> {
         const product = await this.productRepo.findOne({ 
             where: { id },
             relations: ['categories'] 
@@ -91,35 +91,26 @@ export class ProductsService {
             throw new NotFoundException(`Product with id ${id} not found`);
         }
 
-        // Update Product data if data is provided
-        if(updateData.name !== undefined) {
-            product.name = updateData.name;
-        }
-        if(updateData.price !== undefined) {
-            product.price = updateData.price;
-        }
-        if(updateData.quantity !== undefined) {
-            product.quantity = updateData.quantity;
-        }
-        if(updateData.rating !== undefined) {
-            product.rating = updateData.rating;
-        }
-        if(updateData.categoryIds !== undefined) {
-            const categories = await this.categoriesService.getCategoriesByIds(updateData.categoryIds);
+        Object.assign(product, {
+            ...dto,
+            categoryIds: undefined
+        });
+
+        if(dto.categoryIds) {
+            const categories = await this.categoriesService.getCategoriesByIds(dto.categoryIds);
             
             if (!categories.length) {
                 throw new NotFoundException('No categories found for the provided IDs');
             }
             
             product.categories = categories;
+        
         }
 
         await this.productRepo.save(product);
+        
         return { message: `Product with id ${id} updated successfully` };
 
     }
-
-
-
 
 }
