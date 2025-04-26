@@ -13,7 +13,7 @@ export enum UserRole {
 @Entity()
 export class User {
     @PrimaryGeneratedColumn()
-    //@Exclude({ toPlainOnly: true }) // Exclude id ONLY from the response
+    @Exclude({ toPlainOnly: true }) // Exclude id ONLY from the response
     id: number;
 
     @Column()

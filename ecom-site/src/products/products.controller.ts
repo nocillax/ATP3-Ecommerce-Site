@@ -23,7 +23,7 @@ export class ProductsController {
     }
 
     @Get(':id')
-    getProductById(@Param('id', ParseIntPipe) id: number): Promise<Product | null> {
+    getProductById(@Param('id', ParseIntPipe) id: number): Promise<Product> {
         return this.productsService.getProductById(id);
     }
 

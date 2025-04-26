@@ -48,7 +48,7 @@ export class ProductsService {
         return products;
     }
 
-    async getProductById(id: number): Promise<Product | null> {
+    async getProductById(id: number): Promise<Product> {
         const product = await this.productRepo.findOne({ 
             where: { id },
             relations: ['categories', 'reviews', 'reviews.user']
@@ -71,44 +71,29 @@ export class ProductsService {
             throw new NotFoundException(`Product with id ${id} not found`);
         }
 
-        product.categories = []; // Clear relations
-        await this.productRepo.save(product); // Save the product with cleared relations
-        
-        await this.productRepo.delete(id); // Delete the product    
-
+        await this.productRepo.remove(product); // Does remove the relation as well
         return { message: `Product with id ${id} deleted successfully` };
 
     }
 
-
     async updateProduct(id: number, dto: UpdateProductDto): Promise<{ message: string }> {
-        const product = await this.productRepo.findOne({ 
-            where: { id },
-            relations: ['categories'] 
-        });
+        const product = await this.getProductById(id);
 
-        if (!product) {
-            throw new NotFoundException(`Product with id ${id} not found`);
-        }
+        const { categoryIds, ...updateData } = dto; // Destructure to exclude categoryIds
 
-        Object.assign(product, {
-            ...dto,
-            categoryIds: undefined
-        });
+        Object.assign(product, updateData);
 
-        if(dto.categoryIds) {
-            const categories = await this.categoriesService.getCategoriesByIds(dto.categoryIds);
+        if(categoryIds) {
+            const categories = await this.categoriesService.getCategoriesByIds(categoryIds);
             
             if (!categories.length) {
                 throw new NotFoundException('No categories found for the provided IDs');
             }
-            
-            product.categories = categories;
         
+            product.categories = categories;
         }
 
-        await this.productRepo.save(product);
-
+        await this.productRepo.save(product as Product);
         return { message: `Product with id ${id} updated successfully` };
 
     }

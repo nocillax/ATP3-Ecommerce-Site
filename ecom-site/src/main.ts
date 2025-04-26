@@ -16,7 +16,7 @@ async function bootstrap() {
   );
 
   app.useGlobalInterceptors(new SerializeInterceptor());
-
+  app.enableShutdownHooks();
 
   await app.listen(process.env.PORT ?? 3000);
 }

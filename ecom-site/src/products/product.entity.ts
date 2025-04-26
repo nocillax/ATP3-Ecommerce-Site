@@ -6,7 +6,7 @@ import { Review } from 'src/reviews/review.entity';
 @Entity()
 export class Product {
   @PrimaryGeneratedColumn()
-  //@Exclude({ toPlainOnly: true }) // Exclude id ONLY from the response
+  @Exclude({ toPlainOnly: true }) // Exclude id ONLY from the response
   id: number;
 
   @Column()
@@ -21,7 +21,7 @@ export class Product {
   @Column('float')
   rating: number;
 
-  @ManyToMany(() => Category, (category) => category.products, { onDelete: 'SET NULL' })
+  @ManyToMany(() => Category, (category) => category.products, { onDelete: 'SET NULL' , nullable: true })
   @JoinTable()
   categories: Category[];
 

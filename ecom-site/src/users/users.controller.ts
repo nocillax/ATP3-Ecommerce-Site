@@ -2,7 +2,7 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './user.entity';
 import { CreateUserDto } from './DTO/create-user.dto';
@@ -22,12 +22,12 @@ export class UsersController {
     }
 
     @Get(':id')
-    getUserById(@Param('id') id: number): Promise<User | null> {
+    getUserById(@Param('id', ParseIntPipe) id: number ): Promise<User> {
         return this.usersService.getUserById(id);
     }
 
     @Delete(':id')
-    deleteUser(@Param('id') id: number): Promise<{message: string}> {
+    deleteUser(@Param('id', ParseIntPipe) id: number): Promise<{message: string}> {
         return this.usersService.deleteUser(id);
     }
 

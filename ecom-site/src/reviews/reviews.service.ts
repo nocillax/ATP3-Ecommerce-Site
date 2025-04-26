@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
 import { ProductsService } from 'src/products/products.service';
+import { UpdateReviewDto } from './DTO/update-review.dto';
 
 @Injectable()
 export class ReviewsService { 
@@ -23,14 +24,6 @@ export class ReviewsService {
 
         const user = await this.usersService.getUserById(dto.userId);
         const product = await this.productsService.getProductById(dto.productId);
-            
-
-        if (!user) {
-            throw new NotFoundException(`User with id ${dto.userId} not found`);
-        }
-        if (!product) {
-            throw new NotFoundException(`Product with id ${dto.productId} not found`);
-        }
 
         const review = this.reviewRepo.create({
             rating: dto.rating,
@@ -51,5 +44,65 @@ export class ReviewsService {
 
         return reviews;
     }
+
+    async getReviewById(id: number): Promise<Review> {
+        const review = await this.reviewRepo.findOne({
+            where: { id },
+            relations: ['user', 'product']
+        });
+
+        if (!review) {
+            throw new NotFoundException(`Review with id ${id} not found`);
+        }
+        return review;
+    }
+
+    async getReviewsByProductId(productId: number): Promise<Review[]> {
+        const reviews = await this.reviewRepo.find({
+            where: { product: { id: productId } },
+            relations: ['user', 'product']
+        });
+
+        if (reviews.length === 0) {
+            throw new NotFoundException(`No reviews found for product with id ${productId}`);
+        }
+
+        return reviews;
+    }
+
+    async getReviewsByUserId(userId: number): Promise<Review[]> {
+        const reviews = await this.reviewRepo.find({
+            where: { user: { id: userId } },
+            relations: ['user', 'product']
+        });
+
+        if (reviews.length === 0) {
+            throw new NotFoundException(`No reviews found for user with id ${userId}`);
+        }
+
+        return reviews;
+    }
+
+    async deleteReview(id: number): Promise<{ message: string }> {
+        const review = await this.getReviewById(id);
+
+        await this.reviewRepo.remove(review);
+        return { message: `Review with ID ${id} deleted successfully` };
+    }
+
+    async updateReview(id: number, dto: UpdateReviewDto): Promise<{ message: string }> {
+        const review = await this.getReviewById(id);
+
+        Object.assign(review, dto);
+
+        await this.reviewRepo.save(review as Review);
+        return { message: `Review with ID ${id} updated successfully` };
+    }
+
+
+
+
+
+
 
 }

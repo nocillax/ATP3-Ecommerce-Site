@@ -17,14 +17,21 @@ export class CategoriesService {
     ) {}
 
     addCategory(dto: CreateCategoryDto): Promise<Category> {
-        return this.categoryRepo.save(dto);
+        const category = this.categoryRepo.create(dto);
+        return this.categoryRepo.save(category);
     }
 
-    getCategories(): Promise<Category[]> {
-        return this.categoryRepo.find();
+    async getCategories(): Promise<Category[]> {
+        const categories = await this.categoryRepo.find();
+
+        if (categories.length === 0) {
+            throw new NotFoundException('No categories found');
+        }
+        
+        return categories;
     }
 
-    async getCategoryById(id: number): Promise<Category | null> {
+    async getCategoryById(id: number): Promise<Category> {
         const category = await this.categoryRepo.findOneBy({ id });
 
         if (!category) {
@@ -47,12 +54,15 @@ export class CategoriesService {
         return { message: `Category with id ${id} deleted successfully` };
     }
 
-    async updateCategory(id: number, data: UpdateCategoryDto): Promise<{message: string}> {
-            await this.getCategoryById(id);
-            await this.categoryRepo.update(id, data);
-    
-            return { message: `Category with id ${id} updated successfully` };   
-        }
+    async updateCategory(id: number, dto: UpdateCategoryDto): Promise<{message: string}> {
+        const category = await this.getCategoryById(id);
+
+        Object.assign(category, dto);
+        await this.categoryRepo.save(category as Category); // Save the updated category
+
+
+        return { message: `Category with id ${id} updated successfully` };   
+    }
 
 
 

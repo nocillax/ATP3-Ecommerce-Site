@@ -23,7 +23,7 @@ export class CategoriesController {
     }
 
     @Get(':id')
-    getCategoryById(@Param('id', ParseIntPipe) id: number): Promise<Category | null> {
+    getCategoryById(@Param('id', ParseIntPipe) id: number): Promise<Category> {
         return this.categoriesService.getCategoryById(id);
     }
 

@@ -43,7 +43,7 @@ export class UsersService {
         return users;
     }
 
-    async getUserById(id: number): Promise<User | null> {
+    async getUserById(id: number): Promise<User> {
         const user = await this.userRepo.findOne({ where: { id } });
         
         if (!user) {

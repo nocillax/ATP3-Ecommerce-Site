@@ -14,11 +14,11 @@ export class Review {
     @Column({ nullable: true })
     comment: string;
 
-    @ManyToOne(() => User, user => user.reviews)
+    @ManyToOne(() => User, user => user.reviews, { onDelete: 'SET NULL', nullable: true })
     @JoinColumn({ name: 'userId' }) // Repo can find this column by this name
     user: User;
   
-    @ManyToOne(() => Product, product => product.reviews)
+    @ManyToOne(() => Product, product => product.reviews, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'productId' })
     product: Product;
 }
