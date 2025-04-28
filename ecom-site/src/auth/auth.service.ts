@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './DTO/login.dto';
 import { ConfigService } from '@nestjs/config';
 
+
 @Injectable()
 export class AuthService {
     constructor(
@@ -32,10 +33,7 @@ export class AuthService {
 
         const payload = { sub: user.id, role: user.role, email: user.email };
 
-        const token = this.jwtService.sign(payload, {
-            secret: this.configService.get<string>('JWT_SECRET'),
-            expiresIn: this.configService.get<string>('JWT_EXPIRATION_TIME'), 
-        });
+        const token = this.jwtService.sign(payload);
 
         return { access_token: token };
 

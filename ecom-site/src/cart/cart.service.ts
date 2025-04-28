@@ -42,6 +42,15 @@ export class CartService {
         return await this.cartRepo.save(cart);
     }
 
+    async findCartById(cartId: number): Promise<Cart | null> {
+        const cart = await this.cartRepo.findOne({
+            where: { id: cartId },
+            relations: ['cartItems', 'cartItems.product'],
+        });
+
+        return cart;
+    }
+
 
     async findCartByUserId(userId: number): Promise<Cart | null> {
 
@@ -69,7 +78,7 @@ export class CartService {
     async findExistingCartItemOfUser(userId: number, cartItemId: number): Promise<CartItem> {
         const cartItem = await this.cartItemRepo.findOne({
             where: { id: cartItemId },
-            relations: ['cart', 'cart.user'],
+            relations: ['cart', 'product', 'cart.user'],
         });
 
         if (!cartItem || cartItem.cart.user.id !== userId) {
@@ -87,8 +96,7 @@ export class CartService {
 
 
     async calculateTotalPrice(cart: Cart): Promise<number> {
-
-        return cart.cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+        return cart.cartItems.reduce((total, item) => total + Number(item.price), 0);
     }
 
 
@@ -118,18 +126,22 @@ export class CartService {
 
         let cartItem = await this.findCartItem(cart, product.id);
 
+        const unitPrice = Number(product.price);
+
         if (cartItem) {
             cartItem.quantity += dto.quantity;
+            cartItem.price = unitPrice * cartItem.quantity;     // update full line price
+            await this.cartItemRepo.save(cartItem);     // Save the updated cart item
         } 
         else {
             cartItem = this.cartItemRepo.create({
                 cart,
                 product,
                 quantity: dto.quantity,
-                price: Number(product.price),
+                price: unitPrice * dto.quantity,    // final price 
             });
 
-            cart.cartItems.push(cartItem);
+            cart.cartItems.push(cartItem);     
         }
 
         cart.totalPrice = await this.calculateTotalPrice(cart);
@@ -141,13 +153,21 @@ export class CartService {
 
     async updateCartItem(userId: number, dto: UpdateCartItemDto): Promise<{ message: string }> {
         const cart = await this.findExistingCartByUserId(userId);
+        const oldCartItem = await this.findExistingCartItemOfUser(userId, dto.cartItemId);
 
-        const cartItem = await this.findExistingCartItemOfUser(userId, dto.cartItemId);
+        const unitPrice = Number(oldCartItem.product.price); 
+        oldCartItem.quantity = dto.quantity; 
+        oldCartItem.price = unitPrice * dto.quantity;     
 
-        cartItem.quantity = dto.quantity;
-        await this.cartItemRepo.save(cartItem);
+        await this.cartItemRepo.save(oldCartItem);
 
-        cart.totalPrice = await this.calculateTotalPrice(cart);
+        cart.cartItems.forEach((item, index) => {
+            if (item.id === oldCartItem.id) {
+                cart.cartItems[index] = oldCartItem;
+            }
+        });
+
+        cart.totalPrice = await this.calculateTotalPrice(cart);  
         await this.cartRepo.save(cart);
 
         return { message: 'Cart item updated successfully' };
