@@ -9,7 +9,7 @@ export class Cart {
     @Exclude({ toPlainOnly: true }) 
     id: number;
 
-    @OneToOne(() => User, user => user.cart)
+    @OneToOne(() => User, user => user.carts)
     @JoinColumn()
     user: User;
 

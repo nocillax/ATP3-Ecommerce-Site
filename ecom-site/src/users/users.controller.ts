@@ -2,10 +2,11 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './user.entity';
 import { CreateUserDto } from './DTO/create-user.dto';
+import { UpdateUserDto } from './DTO/update-user.dto';
 
 @Controller('users')
 export class UsersController { 
@@ -27,8 +28,13 @@ export class UsersController {
     }
 
     @Delete(':id')
-    deleteUser(@Param('id', ParseIntPipe) id: number): Promise<{message: string}> {
+    deleteUser(@Param('id', ParseIntPipe) id: number): Promise<{ message: string }> {
         return this.usersService.deleteUser(id);
+    }
+
+    @Patch(':id')
+    updateUser(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto): Promise<{ message: string }> {
+        return this.usersService.updateUser(id, dto);
     }
 
 

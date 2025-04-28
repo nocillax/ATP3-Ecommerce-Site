@@ -36,13 +36,13 @@ export class User {
     })
     role: UserRole;
 
-    @OneToMany(() => Cart, (cart) => cart.user)
-    cart: Cart[];
-
     @OneToMany(() => Review, review => review.user)
     reviews: Review[];
 
     @OneToMany(() => Order, order => order.user)
     orders: Order[];
+
+    @OneToMany(() => Cart, (cart) => cart.user)
+    carts: Cart[];
 
 }
