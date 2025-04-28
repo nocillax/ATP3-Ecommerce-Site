@@ -2,11 +2,15 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Request, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './user.entity';
 import { CreateUserDto } from './DTO/create-user.dto';
 import { UpdateUserDto } from './DTO/update-user.dto';
+import { Roles } from 'src/auth/roles.decorator';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from 'src/auth/roles.guard';
+
 
 @Controller('users')
 export class UsersController { 
@@ -18,23 +22,53 @@ export class UsersController {
     }
 
     @Get()
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('admin')
     getAllUsers(): Promise<User[]> {
         return this.usersService.getAllUsers();
     }
 
     @Get(':id')
-    getUserById(@Param('id', ParseIntPipe) id: number ): Promise<User> {
-        return this.usersService.getUserById(id);
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('admin', 'customer')
+    getUserById(
+        @Param('id', ParseIntPipe) id: number,
+        @Request() req: any 
+    ): Promise<User> {
+        return this.usersService.getUserById(req.user, id);
     }
 
+    @Get(':email')
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('admin', 'customer')
+    getUserByEmail(
+        @Param('email') email: string,
+        @Request() req: any
+    ): Promise<User> {
+        return this.usersService.getUserByEmail(req.user, email);
+    }
+    
+
     @Delete(':id')
-    deleteUser(@Param('id', ParseIntPipe) id: number): Promise<{ message: string }> {
-        return this.usersService.deleteUser(id);
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('admin', 'customer')
+    deleteUser(
+        @Param('id', ParseIntPipe) id: number,
+        @Request() req: any
+    ): Promise<{ message: string }> {
+        return this.usersService.deleteUser(req.user, id);
     }
 
     @Patch(':id')
-    updateUser(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto): Promise<{ message: string }> {
-        return this.usersService.updateUser(id, dto);
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('admin', 'customer')
+    updateUser(
+        @Param('id', ParseIntPipe) id: number, 
+        @Body() dto: UpdateUserDto,
+        @Request() req: any
+    ): Promise<{ message: string }> {
+
+        return this.usersService.updateUser(req.user, id, dto);
     }
 
 

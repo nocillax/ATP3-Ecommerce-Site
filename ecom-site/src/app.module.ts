@@ -1,3 +1,4 @@
+import { AuthModule } from './auth/auth.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { UsersModule } from './users/users.module';
 import { CategoriesModule } from './categories/categories.module';
@@ -9,6 +10,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
+    AuthModule,
     ReviewsModule,
     UsersModule,
     TypeOrmModule.forRoot({

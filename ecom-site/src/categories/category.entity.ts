@@ -5,7 +5,6 @@ import { Exclude } from 'class-transformer';
 @Entity()
 export class Category {
   @PrimaryGeneratedColumn()
-  @Exclude({ toPlainOnly: true }) // Exclude id ONLY from the response
   id: number;
 
   @Column()

@@ -2,7 +2,7 @@
 https://docs.nestjs.com/providers#services
 */
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './DTO/create-user.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -19,13 +19,47 @@ export class UsersService {
         private readonly userRepo: Repository<User>
     ) {}
 
-    async createUser(dto: CreateUserDto): Promise<User> {
 
+    // ===========================================================================
+    //  Internal Functions (Direct database lookup, no security checks)
+    // ===========================================================================
+
+
+    async findUserById(id: number): Promise<User | null> {
+        return await this.userRepo.findOne({ where: { id } });
+    }
+
+    async findUserByEmail(email: string): Promise<User | null> {
+        return await this.userRepo.findOne({ where: { email } });
+    }
+
+    async findExistingUserById(id: number): Promise<User> {
+        const user = await this.userRepo.findOne({ where: { id } });
+        if (!user) {
+            throw new NotFoundException(`User with id ${id} not found`);
+        }
+        return user;
+    }
+
+    async findExistingUserByEmail(email: string): Promise<User> {
+        const user = await this.userRepo.findOne({ where: { email } });
+        if (!user) {
+            throw new NotFoundException(`User with email ${email} not found`);
+        }
+        return user;
+    }
+
+
+    // ===========================================================================
+    //  Public API Functions (With Ownership/Role checks)
+    // ===========================================================================
+
+
+    async createUser(dto: CreateUserDto): Promise<User> {
         const salt = 10;
         const hashedPassword = await bcrypt.hash(dto.password, salt);
 
         const user = this.userRepo.create({
-
             ...dto,
             password: hashedPassword
         });
@@ -34,7 +68,6 @@ export class UsersService {
     }
 
     async getAllUsers(): Promise<User[]> {
-
         const users = await this.userRepo.find();
 
         if (users.length === 0) {
@@ -44,39 +77,55 @@ export class UsersService {
         return users;
     }
 
-    async getUserById(id: number): Promise<User> {
-        const user = await this.userRepo.findOne({ where: { id } });
-        
-        if (!user) {
-            throw new NotFoundException(`User with id ${id} not found`);
+    async getUserById(requestUser: any, id: number): Promise<User> {
+        if (requestUser.role !== 'admin' && requestUser.userId !== id) {
+            throw new ForbiddenException('You are not allowed to view this profile');
         }
+
+        const user = await this.findExistingUserById(id);
 
         return user;
     }
 
-    async deleteUser(id: number): Promise<{message: string}> {
-        await this.getUserById(id);
+    async getUserByEmail(requestUser: any, email: string): Promise<User> {
+        if (requestUser.role !== 'admin' && requestUser.email !== email) {
+            throw new ForbiddenException('You are not allowed to view this profile');
+        }
+
+        const user = await this.findExistingUserByEmail(email);
+
+        return user;
+    }
+
+    async deleteUser(requestUser: any, id: number): Promise<{message: string}> {
+        if (requestUser.role !== 'admin' && requestUser.userId !== id) {
+            throw new ForbiddenException('You are not allowed to delete this profile');
+        }
+        
+        await this.findExistingUserById(id);
+
         await this.userRepo.delete(id);
+
         return { message: `User with id ${id} deleted successfully` };
     }
 
-    async updateUser(id: number, dto: UpdateUserDto): Promise<{ message: string }> {
-    const user = await this.getUserById(id);
+    async updateUser(requestUser: any, id: number, dto: UpdateUserDto): Promise<{ message: string }> {
+        if (requestUser.role !== 'admin' && requestUser.userId !== id) {
+            throw new ForbiddenException('You are not allowed to update this profile');
+        }
 
-    if (dto.password) {
-        const salt = 10;
-        const hashedPassword = await bcrypt.hash(dto.password, salt);
-        dto.password = hashedPassword;
+        const user = await this.findExistingUserById(id);
+
+        if (dto.password) {
+            const salt = 10;
+            const hashedPassword = await bcrypt.hash(dto.password, salt);
+            dto.password = hashedPassword;
+        }
+
+        Object.assign(user, dto);
+
+        await this.userRepo.save(user as User);
+
+        return { message: `User with id ${id} updated successfully` };
     }
-
-    Object.assign(user, dto);
-
-    await this.userRepo.save(user as User);
-
-    return { message: `User with id ${id} updated successfully` };
-    }
-
-
-
-
 }

@@ -2,7 +2,7 @@
 https://docs.nestjs.com/providers#services
 */
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateReviewDto } from './DTO/create-review.dto';
 import { Review } from './review.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -20,9 +20,58 @@ export class ReviewsService {
         private readonly productsService: ProductsService,
     ) {}
 
-    async addReview(dto: CreateReviewDto): Promise<Review> {
 
-        const user = await this.usersService.getUserById(dto.userId);
+    // ===========================================================================
+    //  Internal Functions (Direct database lookup, no security checks)
+    // ===========================================================================
+
+
+    async findReviewById(id: number): Promise<Review | null> {
+        return await this.reviewRepo.findOne({
+            where: { id },
+            relations: ['user', 'product'],
+        });
+    }
+
+    async findReviewsByProductId(productId: number): Promise<Review[]> {
+        return await this.reviewRepo.find({
+            where: { product: { id: productId } },
+            relations: ['user', 'product'],
+        });
+    }
+
+    async findReviewsByUserId(userId: number): Promise<Review[]> {
+        return await this.reviewRepo.find({
+            where: { user: { id: userId } },
+            relations: ['user', 'product'],
+        });
+    }
+
+    async findExistingReviewById(id: number): Promise<Review> {
+        const review = await this.reviewRepo.findOne({
+            where: { id },
+            relations: ['user', 'product'],
+        });
+
+        if (!review) {
+            throw new NotFoundException(`Review with ID ${id} not found`);
+        }
+
+        return review;
+    }   
+
+
+    // ===========================================================================
+    //  Public API Functions (With Ownership/Role checks)
+    // ===========================================================================
+
+
+    async addReview(dto: CreateReviewDto): Promise<Review> {
+        const user = await this.usersService.findUserById(dto.userId);
+        if (!user) {
+            throw new NotFoundException(`User with id ${dto.userId} not found`);
+        }
+        
         const product = await this.productsService.getProductById(dto.productId);
 
         const review = this.reviewRepo.create({
@@ -37,7 +86,6 @@ export class ReviewsService {
 
     async getReviews(): Promise<Review[]> {
         const reviews = await this.reviewRepo.find();
-
         if( reviews.length === 0) {
             throw new NotFoundException('No reviews found');
         }
@@ -46,23 +94,13 @@ export class ReviewsService {
     }
 
     async getReviewById(id: number): Promise<Review> {
-        const review = await this.reviewRepo.findOne({
-            where: { id },
-            relations: ['user', 'product']
-        });
+        const review = await this.findExistingReviewById(id);
 
-        if (!review) {
-            throw new NotFoundException(`Review with id ${id} not found`);
-        }
         return review;
     }
 
     async getReviewsByProductId(productId: number): Promise<Review[]> {
-        const reviews = await this.reviewRepo.find({
-            where: { product: { id: productId } },
-            relations: ['user', 'product']
-        });
-
+        const reviews = await this.findReviewsByProductId(productId);
         if (reviews.length === 0) {
             throw new NotFoundException(`No reviews found for product with id ${productId}`);
         }
@@ -70,12 +108,12 @@ export class ReviewsService {
         return reviews;
     }
 
-    async getReviewsByUserId(userId: number): Promise<Review[]> {
-        const reviews = await this.reviewRepo.find({
-            where: { user: { id: userId } },
-            relations: ['user', 'product']
-        });
-
+    async getReviewsByUserId(requestUser: any, userId: number): Promise<Review[]> {
+        if(requestUser.role !== 'admin' && requestUser.userId !== userId) {
+            throw new ForbiddenException('You are not allowed to view this review');
+        }
+        
+        const reviews = await this.findReviewsByUserId(userId);
         if (reviews.length === 0) {
             throw new NotFoundException(`No reviews found for user with id ${userId}`);
         }
@@ -83,21 +121,33 @@ export class ReviewsService {
         return reviews;
     }
 
-    async deleteReview(id: number): Promise<{ message: string }> {
-        const review = await this.getReviewById(id);
+    async updateReview(requestUser: any, id: number, dto: UpdateReviewDto): Promise<{ message: string }> {
+        const review = await this.findExistingReviewById(id);
 
-        await this.reviewRepo.remove(review);
-        return { message: `Review with ID ${id} deleted successfully` };
-    }
-
-    async updateReview(id: number, dto: UpdateReviewDto): Promise<{ message: string }> {
-        const review = await this.getReviewById(id);
+        if (requestUser.role !== 'admin' && requestUser.userId !== review.user.id) {
+            throw new ForbiddenException('You are not allowed to update this review');
+        }
 
         Object.assign(review, dto);
 
         await this.reviewRepo.save(review as Review);
+
         return { message: `Review with ID ${id} updated successfully` };
     }
+
+    async deleteReview(requestUser: any, id: number): Promise<{ message: string }> {
+        const review = await this.findExistingReviewById(id);
+
+        if (requestUser.role !== 'admin' && requestUser.userId !== review.user.id) {
+            throw new ForbiddenException('You are not allowed to delete this review');
+        }
+
+        await this.reviewRepo.remove(review);
+        
+        return { message: `Review with ID ${id} deleted successfully` };
+    }
+
+    
 
 
 

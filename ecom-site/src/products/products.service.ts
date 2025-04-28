@@ -21,9 +21,39 @@ export class ProductsService {
 
     ) {}
 
+    
+    // ===========================================================================
+    //  Internal Functions (Direct database lookup, no security checks)
+    // ===========================================================================
+
+    async findProductById(id: number): Promise<Product | null> {
+        return await this.productRepo.findOne({
+            where: { id },
+            relations: ['categories', 'reviews', 'reviews.user'],   // load relations
+        });
+    }
+
+    async findExistingProductById(id: number): Promise<Product> {
+        const product = await this.productRepo.findOne({
+            where: { id },
+            relations: ['categories', 'reviews', 'reviews.user'],
+        });
+
+        if (!product) {
+            throw new NotFoundException(`Product with id ${id} not found`);
+        }
+
+        return product;
+    }   
+
+
+    // ===========================================================================
+    //  Public API Functions (With Authorization Checks in Controller)
+    // ===========================================================================
+
+
     async addProduct(dto: CreateProductDto): Promise<Product> {
         const categories = await this.categoriesService.getCategoriesByIds(dto.categoryIds);
-
         if(!categories || categories.length === 0){ // if categories is empty
             
             throw new NotFoundException('No categories found for the provided IDs');    
@@ -38,7 +68,6 @@ export class ProductsService {
     }
 
     async getProducts(): Promise<Product[]> {
-
         const products = await this.productRepo.find();
 
         if (products.length === 0) {
@@ -49,29 +78,16 @@ export class ProductsService {
     }
 
     async getProductById(id: number): Promise<Product> {
-        const product = await this.productRepo.findOne({ 
-            where: { id },
-            relations: ['categories', 'reviews', 'reviews.user']
-        });
-        
-        if (!product) {
-            throw new NotFoundException(`Product with id ${id} not found`);
-        }
+        const product = await this.findExistingProductById(id);
 
         return product;
     }
 
     async deleteProduct(id: number): Promise<{ message: string }> {
-        const product = await this.productRepo.findOne({ 
-            where: { id },
-            relations: ['categories'] 
-        });
-
-        if (!product) {
-            throw new NotFoundException(`Product with id ${id} not found`);
-        }
+        const product = await this.findExistingProductById(id);
 
         await this.productRepo.remove(product); // Does remove the relation as well
+
         return { message: `Product with id ${id} deleted successfully` };
 
     }
@@ -83,17 +99,23 @@ export class ProductsService {
 
         Object.assign(product, updateData);
 
-        if(categoryIds) {
-            const categories = await this.categoriesService.getCategoriesByIds(categoryIds);
-            
-            if (!categories.length) {
-                throw new NotFoundException('No categories found for the provided IDs');
+        if (Array.isArray(categoryIds)) {   // Check if categoryIds is an array before checking length
+            if (categoryIds.length === 0) { 
+
+                product.categories = [];    // If empty, clear categories
+            } 
+            else {
+                const categories = await this.categoriesService.getCategoriesByIds(categoryIds);  
+                if (!categories.length) {
+                    throw new NotFoundException('No categories found for the provided IDs');
+                }
+
+                product.categories = categories;
             }
-        
-            product.categories = categories;
         }
 
         await this.productRepo.save(product as Product);
+
         return { message: `Product with id ${id} updated successfully` };
 
     }

@@ -6,7 +6,6 @@ import { Review } from 'src/reviews/review.entity';
 @Entity()
 export class Product {
   @PrimaryGeneratedColumn()
-  @Exclude({ toPlainOnly: true }) // Exclude id ONLY from the response
   id: number;
 
   @Column()

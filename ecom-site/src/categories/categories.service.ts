@@ -16,9 +16,38 @@ export class CategoriesService {
         private readonly categoryRepo: Repository<Category>,
     ) {}
 
-    addCategory(dto: CreateCategoryDto): Promise<Category> {
+    // ===========================================================================
+    //  Internal Functions (Direct database lookup, no security checks)
+    // ===========================================================================
+
+    async findCategoryById(id: number): Promise<Category | null> {
+        return await this.categoryRepo.findOneBy({ id });
+    }
+
+    async findExistingCategoryById(id: number): Promise<Category> {
+        const category = await this.categoryRepo.findOneBy({ id });
+        if (!category) {
+            throw new NotFoundException(`Category with id ${id} not found`);
+        }
+
+        return category;
+    }
+
+    async getCategoriesByIds(ids: number[]): Promise<Category[]> {
+        return await this.categoryRepo.find({
+            where: { id: In(ids) },
+        });
+    }
+
+
+    // ===========================================================================
+    //  Public API Functions (With Authorization checks in Controller)
+    // ===========================================================================
+
+
+    async addCategory(dto: CreateCategoryDto): Promise<Category> {
         const category = this.categoryRepo.create(dto);
-        return this.categoryRepo.save(category);
+        return await this.categoryRepo.save(category);
     }
 
     async getCategories(): Promise<Category[]> {
@@ -32,39 +61,27 @@ export class CategoriesService {
     }
 
     async getCategoryById(id: number): Promise<Category> {
-        const category = await this.categoryRepo.findOneBy({ id });
-
-        if (!category) {
-            throw new NotFoundException(`Category with id ${id} not found`);
-        }
+        const category = await this.findExistingCategoryById(id);
 
         return category;
     }
 
-    async getCategoriesByIds(ids: number[]): Promise<Category[]> {
-        return this.categoryRepo.find({ 
-            where: { id: In(ids) }
-        });
-    }
 
     async deleteCategory(id: number): Promise<{ message: string }> {
-        await this.getCategoryById(id);
+        await this.findExistingCategoryById(id);
         await this.categoryRepo.delete(id);
 
         return { message: `Category with id ${id} deleted successfully` };
     }
 
     async updateCategory(id: number, dto: UpdateCategoryDto): Promise<{message: string}> {
-        const category = await this.getCategoryById(id);
+        const category = await this.findExistingCategoryById(id);
 
         Object.assign(category, dto);
-        await this.categoryRepo.save(category as Category); // Save the updated category
-
+        await this.categoryRepo.save(category as Category);
 
         return { message: `Category with id ${id} updated successfully` };   
     }
-
-
 
 
 }
