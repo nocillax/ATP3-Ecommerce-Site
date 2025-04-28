@@ -64,7 +64,7 @@ export class CartService {
     async findExistingCartByUserId(userId: number): Promise<Cart> {
         const cart = await this.cartRepo.findOne({
             where: { user: { id: userId } },
-            relations: ['cartItems', 'cartItems.product'],
+            relations: ['user', 'cartItems', 'cartItems.product'],
         });
 
         if (!cart) {
@@ -95,9 +95,31 @@ export class CartService {
     }
 
 
-    async calculateTotalPrice(cart: Cart): Promise<number> {
+  /*   async calculateTotalPrice(cart: Cart): Promise<number> {
         return cart.cartItems.reduce((total, item) => total + Number(item.price), 0);
+    } */
+
+
+    async calculateCartTotalPrice(cart: Cart): Promise<number> {
+    return cart.cartItems.reduce((sum, item) => {
+        return sum + (Number(item.price) * item.quantity);
+    }, 0);
+}
+
+
+async clearCart(userId: number): Promise<{ message: string }> {
+    const cart = await this.findExistingCartByUserId(userId);
+    if (!cart) {
+        return { message: 'No cart found to clear' };
     }
+
+    cart.cartItems = [];
+    cart.totalPrice = 0;
+    await this.cartRepo.save(cart);
+
+    return { message: 'Cart cleared successfully' };
+}
+
 
 
 
@@ -138,13 +160,14 @@ export class CartService {
                 cart,
                 product,
                 quantity: dto.quantity,
-                price: unitPrice * dto.quantity,    // final price 
+                // price: unitPrice * dto.quantity,    // final price 
+                price: unitPrice,    // unit price
             });
 
             cart.cartItems.push(cartItem);     
         }
 
-        cart.totalPrice = await this.calculateTotalPrice(cart);
+        cart.totalPrice = await this.calculateCartTotalPrice(cart);
         await this.cartRepo.save(cart);
 
         return { message: 'Product added to cart successfully' };
@@ -167,7 +190,7 @@ export class CartService {
             }
         });
 
-        cart.totalPrice = await this.calculateTotalPrice(cart);  
+        cart.totalPrice = await this.calculateCartTotalPrice(cart);  
         await this.cartRepo.save(cart);
 
         return { message: 'Cart item updated successfully' };
@@ -182,7 +205,7 @@ export class CartService {
         await this.cartItemRepo.remove(cartItem);
 
         cart.cartItems = cart.cartItems.filter(item => item.id !== cartItemId);
-        cart.totalPrice = await this.calculateTotalPrice(cart);
+        cart.totalPrice = await this.calculateCartTotalPrice(cart);
         await this.cartRepo.save(cart);
 
         return { message: 'Cart item removed successfully' };

@@ -18,6 +18,7 @@ export class CartController {
 
   @Get()
   getCart(@Request() req: any) {
+        console.log(req.user);
     return this.cartService.getCart(req.user.userId);
   }
 
@@ -34,5 +35,10 @@ export class CartController {
   @Delete(':cartItemId')
   removeCartItem(@Request() req: any, @Param('cartItemId', ParseIntPipe) cartItemId: number) {
     return this.cartService.removeCartItem(req.user.userId, cartItemId);
+  }
+
+  @Delete()
+  clearCart(@Request() req: any) {
+    return this.cartService.clearCart(req.user.userId);
   }
 }

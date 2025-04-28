@@ -1,3 +1,4 @@
+import { OrderModule } from './order/order.module';
 import { CartModule } from './cart/cart.module';
 import { CartController } from './cart/cart.controller';
 import { AuthModule } from './auth/auth.module';
@@ -14,7 +15,7 @@ import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ 
+    ConfigModule.forRoot({
       isGlobal: true,
     }),
 
@@ -38,6 +39,7 @@ import { ConfigService } from '@nestjs/config';
     ReviewsModule,
     UsersModule,
     CartModule,
+    OrderModule,
   ],
   controllers: [
     AppController],
