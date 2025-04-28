@@ -8,8 +8,8 @@ import { UpdateProductDto } from './DTO/update-product.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './product.entity';
-import { CategoriesService } from 'src/categories/categories.service';
-import { Category } from 'src/categories/category.entity';
+import { CategoriesService } from 'src/category/category.service';
+import { Category } from 'src/category/category.entity';
 
 
 @Injectable()
@@ -23,7 +23,7 @@ export class ProductsService {
 
     
     // ===========================================================================
-    //  Internal Functions (Direct database lookup, no security checks)
+    //  Internal Functions 
     // ===========================================================================
 
     async findProductById(id: number): Promise<Product | null> {
@@ -48,7 +48,7 @@ export class ProductsService {
 
 
     // ===========================================================================
-    //  Public API Functions (With Authorization Checks in Controller)
+    //  Public API Functions 
     // ===========================================================================
 
 

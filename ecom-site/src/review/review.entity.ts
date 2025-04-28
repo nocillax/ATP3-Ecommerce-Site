@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, Unique, JoinColumn } from "typeorm";
-import { User } from "src/users/user.entity";
-import { Product } from "src/products/product.entity";
+import { User } from "src/user/user.entity";
+import { Product } from "src/product/product.entity";
 
 @Entity()
 @Unique(['user', 'product'])

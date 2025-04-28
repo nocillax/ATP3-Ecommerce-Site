@@ -1,5 +1,5 @@
-import { UsersService } from './users.service';
-import { UsersController } from './users.controller';
+import { UsersService } from './user.service';
+import { UsersController } from './user.controller';
 /*
 https://docs.nestjs.com/modules
 */

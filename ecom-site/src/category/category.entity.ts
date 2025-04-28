@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany } from 'typeorm';
-import { Product } from '../products/product.entity';
+import { Product } from '../product/product.entity';
 import { Exclude } from 'class-transformer';
 
 @Entity()

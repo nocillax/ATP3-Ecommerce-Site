@@ -7,8 +7,8 @@ import { CreateReviewDto } from './DTO/create-review.dto';
 import { Review } from './review.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UsersService } from 'src/users/users.service';
-import { ProductsService } from 'src/products/products.service';
+import { UsersService } from 'src/user/user.service';
+import { ProductsService } from 'src/product/product.service';
 import { UpdateReviewDto } from './DTO/update-review.dto';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class ReviewsService {
 
 
     // ===========================================================================
-    //  Internal Functions (Direct database lookup, no security checks)
+    //  Internal Functions 
     // ===========================================================================
 
 
@@ -62,7 +62,7 @@ export class ReviewsService {
 
 
     // ===========================================================================
-    //  Public API Functions (With Ownership/Role checks)
+    //  Public API Functions 
     // ===========================================================================
 
 

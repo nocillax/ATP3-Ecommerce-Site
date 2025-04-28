@@ -21,7 +21,7 @@ export class UsersService {
 
 
     // ===========================================================================
-    //  Internal Functions (Direct database lookup, no security checks)
+    //  Internal Functions
     // ===========================================================================
 
 
@@ -51,7 +51,7 @@ export class UsersService {
 
 
     // ===========================================================================
-    //  Public API Functions (With Ownership/Role checks)
+    //  Public API Functions 
     // ===========================================================================
 
 

@@ -3,7 +3,7 @@ https://docs.nestjs.com/controllers#controllers
 */
 
 import { Controller, Delete, Get, Param, ParseIntPipe, Patch, UseGuards } from '@nestjs/common';
-import { CategoriesService } from './categories.service';
+import { CategoriesService } from './category.service';
 import { Body, Post } from '@nestjs/common';
 import { CreateCategoryDto } from './DTO/create-category.dto';
 import { Category } from './category.entity';

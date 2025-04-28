@@ -4,10 +4,10 @@ https://docs.nestjs.com/modules
 
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProductsController } from './products.controller';
-import { ProductsService } from './products.service';
+import { ProductsController } from './product.controller';
+import { ProductsService } from './product.service';
 import { Product } from './product.entity';
-import { CategoriesModule } from 'src/categories/categories.module';
+import { CategoriesModule } from 'src/category/category.module';
 
 @Module({
     imports: [TypeOrmModule.forFeature([Product]), CategoriesModule],

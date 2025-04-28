@@ -4,15 +4,17 @@ https://docs.nestjs.com/providers#services
 
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './DTO/login.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly usersService: UsersService,
         private readonly jwtService: JwtService,
+        private readonly configService: ConfigService,
     ) {}
 
     async login(dto: LoginDto): Promise<{ access_token: string }> {
@@ -29,7 +31,11 @@ export class AuthService {
         }
 
         const payload = { sub: user.id, role: user.role, email: user.email };
-        const token = this.jwtService.sign(payload);
+
+        const token = this.jwtService.sign(payload, {
+            secret: this.configService.get<string>('JWT_SECRET'),
+            expiresIn: this.configService.get<string>('JWT_EXPIRATION_TIME'), 
+        });
 
         return { access_token: token };
 

@@ -3,7 +3,7 @@ https://docs.nestjs.com/controllers#controllers
 */
 
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Request, UseGuards } from '@nestjs/common';
-import { ReviewsService } from './reviews.service';
+import { ReviewsService } from './review.service';
 import { CreateReviewDto } from './DTO/create-review.dto';
 import { Review } from './review.entity';
 import { UpdateReviewDto } from './DTO/update-review.dto';

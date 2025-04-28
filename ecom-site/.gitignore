@@ -36,7 +36,8 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 # dotenv environment variable files
-.env
+# For NOW I WANT TO PUSH ENV FILE!! 
+#.env
 .env.development.local
 .env.test.local
 .env.production.local

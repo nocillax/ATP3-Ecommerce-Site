@@ -17,7 +17,7 @@ export class CategoriesService {
     ) {}
 
     // ===========================================================================
-    //  Internal Functions (Direct database lookup, no security checks)
+    //  Internal Functions
     // ===========================================================================
 
     async findCategoryById(id: number): Promise<Category | null> {
@@ -41,7 +41,7 @@ export class CategoriesService {
 
 
     // ===========================================================================
-    //  Public API Functions (With Authorization checks in Controller)
+    //  Public API Functions
     // ===========================================================================
 
 

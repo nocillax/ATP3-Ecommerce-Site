@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, OneToMany } from 'typeorm';
-import { Category } from '../categories/category.entity'; // Adjust the import path as necessary
+import { Category } from '../category/category.entity'; // Adjust the import path as necessary
 import { Exclude } from 'class-transformer';
-import { Review } from 'src/reviews/review.entity';
+import { Review } from 'src/review/review.entity';
 
 @Entity()
 export class Product {

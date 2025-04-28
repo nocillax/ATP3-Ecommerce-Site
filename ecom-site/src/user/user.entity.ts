@@ -1,8 +1,8 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Exclude } from "class-transformer";
-import { Cart } from "src/carts/cart.entity";
-import { Review } from "src/reviews/review.entity";
-import { Order } from "src/orders/order.entity";
+import { Cart } from "src/cart/cart.entity";
+import { Review } from "src/review/review.entity";
+import { Order } from "src/order/order.entity";
 
 
 export enum UserRole {
@@ -42,6 +42,6 @@ export class User {
     orders: Order[];
 
     @OneToMany(() => Cart, (cart) => cart.user)
-    carts: Cart[];
+    cart: Cart[];
 
 }
