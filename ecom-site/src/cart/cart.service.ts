@@ -94,17 +94,11 @@ export class CartService {
         return cart.cartItems.find(item => item.product.id === productId);  // Find cart item by product ID
     }
 
-
-  /*   async calculateTotalPrice(cart: Cart): Promise<number> {
-        return cart.cartItems.reduce((total, item) => total + Number(item.price), 0);
+    /* async calculateCartTotalPrice(cart: Cart): Promise<number> {
+        return cart.cartItems.reduce((sum, item) => {
+            return sum + (Number(item.price) * item.quantity);
+        }, 0);
     } */
-
-
-    async calculateCartTotalPrice(cart: Cart): Promise<number> {
-    return cart.cartItems.reduce((sum, item) => {
-        return sum + (Number(item.price) * item.quantity);
-    }, 0);
-}
 
 
 async clearCart(userId: number): Promise<{ message: string }> {
@@ -137,8 +131,95 @@ async clearCart(userId: number): Promise<{ message: string }> {
         return cart;
     }    
 
+    calculateCartTotalPrice(cart: Cart): number {
+        return cart.cartItems.reduce((sum, item) => sum + Number(item.price), 0);
+    }
+
 
     async addToCart(userId: number, dto: AddToCartDto): Promise<{ message: string }> {
+        let cart = await this.findCartByUserId(userId);
+        if (!cart) {
+            cart = await this.createCartForUser(userId);
+        }
+
+        const product = await this.productsService.getProductById(dto.productId);
+
+        let cartItem = await this.findCartItem(cart, product.id);
+
+        const unitPrice = Number(product.price);
+
+        if (cartItem) {
+            // Update existing cart item
+            cartItem.quantity += dto.quantity;
+            cartItem.price = unitPrice * cartItem.quantity;  // full line price
+            await this.cartItemRepo.save(cartItem);
+        } else {
+            // Create new cart item
+            cartItem = this.cartItemRepo.create({
+                cart,
+                product,
+                quantity: dto.quantity,
+                price: unitPrice * dto.quantity,    // full line price
+            });
+            await this.cartItemRepo.save(cartItem);
+        }
+
+        // Refresh cart items from DB to ensure consistency
+        cart.cartItems = await this.cartItemRepo.find({
+            where: { cart: { id: cart.id } },
+            relations: ['product'],
+        });
+
+        cart.totalPrice = this.calculateCartTotalPrice(cart);
+        await this.cartRepo.save(cart);
+
+        return { message: 'Product added to cart successfully' };
+    }
+
+    async updateCartItem(userId: number, dto: UpdateCartItemDto): Promise<{ message: string }> {
+    const cart = await this.findExistingCartByUserId(userId);
+    const oldCartItem = await this.findExistingCartItemOfUser(userId, dto.cartItemId);
+
+    const unitPrice = Number(oldCartItem.product.price);
+    oldCartItem.quantity = dto.quantity;
+    oldCartItem.price = unitPrice * dto.quantity;
+
+    await this.cartItemRepo.save(oldCartItem);
+
+    // Refresh cart items properly
+    cart.cartItems = await this.cartItemRepo.find({
+        where: { cart: { id: cart.id } },
+        relations: ['product'],
+    });
+
+    cart.totalPrice = this.calculateCartTotalPrice(cart);
+    await this.cartRepo.save(cart);
+
+    return { message: 'Cart item updated successfully' };
+}
+
+async removeCartItem(userId: number, cartItemId: number): Promise<{ message: string }> {
+    const cart = await this.findExistingCartByUserId(userId);
+    const cartItem = await this.findExistingCartItemOfUser(userId, cartItemId);
+
+    await this.cartItemRepo.remove(cartItem);
+
+    // Refresh cart items properly
+    cart.cartItems = await this.cartItemRepo.find({
+        where: { cart: { id: cart.id } },
+        relations: ['product'],
+    });
+
+    cart.totalPrice = this.calculateCartTotalPrice(cart);
+    await this.cartRepo.save(cart);
+
+    return { message: 'Cart item removed successfully' };
+}
+
+
+
+
+    /* async addToCart(userId: number, dto: AddToCartDto): Promise<{ message: string }> {
         let cart = await this.findCartByUserId(userId);
         if (!cart) {
             cart = await this.createCartForUser(userId);
@@ -171,10 +252,10 @@ async clearCart(userId: number): Promise<{ message: string }> {
         await this.cartRepo.save(cart);
 
         return { message: 'Product added to cart successfully' };
-    }
+    } */
 
 
-    async updateCartItem(userId: number, dto: UpdateCartItemDto): Promise<{ message: string }> {
+/*     async updateCartItem(userId: number, dto: UpdateCartItemDto): Promise<{ message: string }> {
         const cart = await this.findExistingCartByUserId(userId);
         const oldCartItem = await this.findExistingCartItemOfUser(userId, dto.cartItemId);
 
@@ -194,10 +275,10 @@ async clearCart(userId: number): Promise<{ message: string }> {
         await this.cartRepo.save(cart);
 
         return { message: 'Cart item updated successfully' };
-    }
+    } */
 
 
-    async removeCartItem(userId: number, cartItemId: number): Promise<{ message: string }> {
+    /* async removeCartItem(userId: number, cartItemId: number): Promise<{ message: string }> {
         const cart = await this.findExistingCartByUserId(userId);
 
         const cartItem = await this.findExistingCartItemOfUser(userId, cartItemId);
@@ -209,7 +290,7 @@ async clearCart(userId: number): Promise<{ message: string }> {
         await this.cartRepo.save(cart);
 
         return { message: 'Cart item removed successfully' };
-    }
+    } */
 
 
 }
