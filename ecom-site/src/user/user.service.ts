@@ -6,7 +6,7 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { CreateUserDto } from './DTO/create-user.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './user.entity';
+import { User, UserRole } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './DTO/update-user.dto';
 
@@ -54,14 +54,37 @@ export class UsersService {
     //  Public API Functions 
     // ===========================================================================
 
+    async publicSignUp(dto: CreateUserDto): Promise<User> {
+        const existingUser = await this.findUserByEmail(dto.email);
+        if (existingUser) {
+            throw new ForbiddenException('User with this email already exists');
+        }
 
-    async createUser(dto: CreateUserDto): Promise<User> {
         const salt = 10;
         const hashedPassword = await bcrypt.hash(dto.password, salt);
 
         const user = this.userRepo.create({
             ...dto,
-            password: hashedPassword
+            password: hashedPassword,
+            role: UserRole.CUSTOMER,
+        });
+
+        return await this.userRepo.save(user);
+    }
+
+    async createUserByAdmin(dto: CreateUserDto): Promise<User> {
+        const existingUser = await this.findUserByEmail(dto.email);
+        if (existingUser) {
+            throw new ForbiddenException('User with this email already exists');
+        }
+
+        const salt = 10;
+        const hashedPassword = await bcrypt.hash(dto.password, salt);
+
+        const user = this.userRepo.create({
+            ...dto,
+            password: hashedPassword,
+            role: dto.role ?? UserRole.CUSTOMER,
         });
 
         return await this.userRepo.save(user);

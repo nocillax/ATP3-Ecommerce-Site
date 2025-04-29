@@ -18,8 +18,11 @@ export class ReviewsController {
     @Post()
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles('customer')
-    addReview(@Body() dto: CreateReviewDto): Promise<Review> {
-        return this.reviewsService.addReview(dto);
+    addReview(
+        @Body() dto: CreateReviewDto,
+        @Request() req: any
+    ): Promise<Review> {
+        return this.reviewsService.addReview(req.user, dto);
     }
 
     @Get()

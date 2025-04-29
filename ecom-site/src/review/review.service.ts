@@ -66,10 +66,11 @@ export class ReviewsService {
     // ===========================================================================
 
 
-    async addReview(dto: CreateReviewDto): Promise<Review> {
-        const user = await this.usersService.findUserById(dto.userId);
+    async addReview(requestUser: any, dto: CreateReviewDto): Promise<Review> {
+        const user = await this.usersService.findUserById(requestUser.id);
+        console.log(user);
         if (!user) {
-            throw new NotFoundException(`User with id ${dto.userId} not found`);
+            throw new NotFoundException(`User with id ${requestUser.id} not found`);
         }
         
         const product = await this.productsService.getProductById(dto.productId);

@@ -3,9 +3,6 @@ import { IsInt, IsOptional, Min, Max, IsString } from 'class-validator';
 export class CreateReviewDto {
 
     @IsInt()
-    userId: number;
-
-    @IsInt()
     productId: number;
 
     @IsInt()

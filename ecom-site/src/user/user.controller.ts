@@ -16,9 +16,15 @@ import { RolesGuard } from 'src/auth/roles.guard';
 export class UsersController { 
     constructor(private readonly usersService: UsersService) {}
 
+    @Post('signup')
+    async publicSignUp(@Body() dto: CreateUserDto): Promise<User> {
+        return this.usersService.publicSignUp(dto);
+    }
     @Post()
-    createUser(@Body() dto: CreateUserDto): Promise<User> {
-        return this.usersService.createUser(dto);
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('admin')
+    async createUserByAdmin(@Body() dto: CreateUserDto): Promise<User> {
+        return this.usersService.createUserByAdmin(dto);
     }
 
     @Get()
