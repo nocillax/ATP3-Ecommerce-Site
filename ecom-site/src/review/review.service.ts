@@ -2,7 +2,7 @@
 https://docs.nestjs.com/providers#services
 */
 
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateReviewDto } from './DTO/create-review.dto';
 import { Review } from './review.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -60,6 +60,17 @@ export class ReviewsService {
         return review;
     }   
 
+    async findReviewByUserAndProduct(userId: number, productId: number): Promise<Review | null> {
+    return await this.reviewRepo.findOne({
+        where: {
+            user: { id: userId },
+            product: { id: productId },
+        },
+        relations: ['user', 'product'],
+    });
+}
+
+
 
     // ===========================================================================
     //  Public API Functions 
@@ -67,13 +78,16 @@ export class ReviewsService {
 
 
     async addReview(requestUser: any, dto: CreateReviewDto): Promise<Review> {
-        const user = await this.usersService.findUserById(requestUser.id);
-        console.log(user);
+        const user = await this.usersService.findUserById(requestUser.userId);
         if (!user) {
-            throw new NotFoundException(`User with id ${requestUser.id} not found`);
+            throw new NotFoundException(`User with id ${requestUser.userId} not found`);
         }
-        
         const product = await this.productsService.getProductById(dto.productId);
+
+        const existingReview = await this.findReviewByUserAndProduct(user.id, product.id);
+        if (existingReview) {
+            throw new BadRequestException('You have already submitted a review for this product.');
+        }
 
         const review = this.reviewRepo.create({
             rating: dto.rating,
