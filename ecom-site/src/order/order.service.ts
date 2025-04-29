@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Order, OrderStatus } from './order.entity';
 import { OrderItem } from './order-item.entity';
 import { CartService } from 'src/cart/cart.service';
@@ -15,10 +15,71 @@ export class OrderService {
         @InjectRepository(OrderItem)
         private readonly orderItemRepo: Repository<OrderItem>,
 
+        @InjectDataSource() 
+        private readonly dataSource: DataSource,
+
         private readonly cartService: CartService,
     ) {}
 
-    async createOrder(userId: number): Promise<{ message: string }> {
+
+async createOrder(userId: number): Promise<{ message: string }> {
+    const cart = await this.cartService.findExistingCartByUserId(userId);
+
+    if (!cart || cart.cartItems.length === 0) {
+        throw new NotFoundException('Your cart is empty');
+    }
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+        const orderItems = cart.cartItems.map(cartItem => {
+            return this.orderItemRepo.create({
+                productName: cartItem.product.name,
+                productPrice: Number(cartItem.product.price),
+                quantity: cartItem.quantity,
+                totalPrice: Number(cartItem.price),
+            });
+        });
+
+        const totalOrderPrice = orderItems.reduce((sum, item) => sum + Number(item.totalPrice), 0);
+
+        const order = this.orderRepo.create({
+            user: cart.user,
+            orderItems,
+            status: OrderStatus.PENDING,
+            totalPrice: totalOrderPrice,
+        });
+
+        // Save order
+        await queryRunner.manager.save(order);
+
+        // Clear cart
+        await queryRunner.manager.delete('CartItem', { cart: { id: cart.id } }); // Clear cart items from DB
+        cart.cartItems = [];
+        cart.totalPrice = 0;
+        await queryRunner.manager.save(cart);
+
+        // Commit transaction
+        await queryRunner.commitTransaction();
+
+        return { message: 'Order placed successfully' };
+    } catch (error) {
+        // Rollback transaction if anything fails
+        await queryRunner.rollbackTransaction();
+        throw error;
+    } finally {
+        await queryRunner.release();
+    }
+}
+
+
+
+
+
+
+    /* async createOrder(userId: number): Promise<{ message: string }> {
     const cart = await this.cartService.findExistingCartByUserId(userId);
 
     if (!cart || cart.cartItems.length === 0) {
@@ -50,7 +111,7 @@ export class OrderService {
     //await this.cartService.clearCart(userId);
 
     return { message: 'Order created successfully' };
-}
+} */
 
 
 

@@ -103,16 +103,22 @@ export class CartService {
 
 async clearCart(userId: number): Promise<{ message: string }> {
     const cart = await this.findExistingCartByUserId(userId);
+
     if (!cart) {
         return { message: 'No cart found to clear' };
     }
 
+    // First remove all cart items from DB
+    await this.cartItemRepo.delete({ cart: { id: cart.id } });
+
+    // Then clear cart object
     cart.cartItems = [];
     cart.totalPrice = 0;
     await this.cartRepo.save(cart);
 
     return { message: 'Cart cleared successfully' };
 }
+
 
 
 
