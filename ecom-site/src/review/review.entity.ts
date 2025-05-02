@@ -8,7 +8,7 @@ export class Review {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({ type: 'decimal', precision: 2, scale: 1})
     rating: number;
 
     @Column({ nullable: true })

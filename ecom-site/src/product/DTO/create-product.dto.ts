@@ -10,9 +10,6 @@ export class CreateProductDto {
   @IsNumber()
   quantity: number;
 
-  @IsNumber()
-  rating: number;
-
   @IsArray()
   @IsNumber({}, { each: true })
   categoryIds: number[];

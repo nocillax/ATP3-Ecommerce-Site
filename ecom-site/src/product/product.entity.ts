@@ -11,13 +11,13 @@ export class Product {
   @Column()
   name: string;
 
-  @Column('decimal')
+  @Column({ type: 'decimal', precision: 12, scale: 2 })
   price: number;
 
   @Column()
   quantity: number;
 
-  @Column('float')
+  @Column({ type: 'decimal', precision: 2, scale: 1, default: 0 })
   rating: number;
 
   @ManyToMany(() => Category, (category) => category.products, { onDelete: 'SET NULL' , nullable: true })

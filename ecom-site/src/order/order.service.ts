@@ -127,12 +127,41 @@ export class OrderService {
             relations: ['orderItems'],
         });
     }
+    
 
-    async getAllOrders(): Promise<Order[]> {
-        return this.orderRepo.find({
-            relations: ['orderItems', 'user'],
-        });
+    async getFilteredOrders(params: {
+        skip: number;
+        take: number;
+        sort: string;
+        order: 'ASC' | 'DESC';
+        userId?: number;
+        status?: string;
+    }): Promise<[Order[], number]> {
+
+    const qb = this.orderRepo.createQueryBuilder('order')
+    .leftJoinAndSelect('order.user', 'user')
+    .leftJoinAndSelect('order.orderItems', 'item')
+    .skip(params.skip)
+    .take(params.take)
+    .orderBy(`order.${params.sort}`, params.order);
+
+    if (params.userId) {
+        qb.andWhere('order.userId = :userId', { userId: params.userId });
     }
+
+    if (params.status) {
+        qb.andWhere('order.status = :status', { status: params.status });
+    }
+
+    const [orders, total] = await qb.getManyAndCount();
+
+    if (orders.length === 0) {
+        throw new NotFoundException('No orders found');
+    }
+
+        return [orders, total];
+    }
+
 
 
     async cancelOrder(userId: number, orderId: number): Promise<{ message: string }> {

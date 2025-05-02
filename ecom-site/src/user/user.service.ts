@@ -90,15 +90,38 @@ export class UsersService {
         return await this.userRepo.save(user);
     }
 
-    async getAllUsers(): Promise<User[]> {
-        const users = await this.userRepo.find();
+    async getFilteredUsers(params: {
+        skip: number;
+        take: number;
+        search?: string;
+        role?: string;
+    }): Promise<[User[], number]> {
 
-        if (users.length === 0) {
-            throw new NotFoundException('No users found');
+        const qb = this.userRepo.createQueryBuilder('user')
+        .skip(params.skip)
+        .take(params.take)
+        .orderBy('user.id', 'ASC');
+
+        if (params.search) {
+            qb.andWhere(
+                '(LOWER(user.name) ILIKE :search OR LOWER(user.email) ILIKE :search)',
+                { search: `%${params.search.toLowerCase()}%` },
+            );
         }
 
-        return users;
+        if (params.role) {
+            qb.andWhere('user.role = :role', { role: params.role });
+        }
+
+        const [users, total] = await qb.getManyAndCount();
+
+        if (users.length === 0) {
+            throw new NotFoundException('No users found matching the criteria');
+        }
+
+        return [users, total];
     }
+
 
     async getUserById(requestUser: any, id: number): Promise<User> {
         if (requestUser.role !== 'admin' && requestUser.userId !== id) {

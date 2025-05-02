@@ -2,7 +2,7 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ProductsService } from './product.service';
 import { CreateProductDto } from './DTO/create-product.dto';
 import { UpdateProductDto } from './DTO/update-product.dto';
@@ -10,6 +10,7 @@ import { Product } from './product.entity';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from 'src/auth/roles.decorator';
+import { GetProductsQueryDto } from './DTO/get-products-query.dto';
 
 @Controller('products')
 export class ProductsController {
@@ -26,27 +27,25 @@ export class ProductsController {
 
     @Get()
     async getProducts(
-        @Query('page') page = 1,
-        @Query('limit') limit = 10,
-        @Query('sort') sort = 'createdAt',
-        @Query('order') order: 'ASC' | 'DESC' = 'DESC',
-        @Query('search') search?: string,
-        @Query('category') category?: string,
-        @Query('minPrice') minPrice?: number,
-        @Query('maxPrice') maxPrice?: number,
-        @Query('minRating') minRating?: number,
-    ){
+        @Query(new ValidationPipe({ transform: true })) query: GetProductsQueryDto,
+    ){  
+        const page = query.page ?? 1;
+        const limit = query.limit ?? 10;
+        const sort = query.sort ?? 'createdAt';
+        const order = query.order ?? 'DESC';
+
         const skip = (page - 1) * limit;
+
         const [data, total] = await this.productsService.getPaginatedProducts({
             skip, 
             take: limit, 
             sort, 
             order,
-            search,
-            category,
-            minPrice,
-            maxPrice,
-            minRating,    
+            search: query.search,
+            category: query.category,
+            minPrice: query.minPrice,
+            maxPrice: query.maxPrice,
+            minRating: query.minRating,    
         });
 
         return { 

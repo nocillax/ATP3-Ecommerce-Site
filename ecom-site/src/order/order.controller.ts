@@ -1,10 +1,11 @@
-import { Controller, Post, UseGuards, Request, Get, Param, ParseIntPipe, Patch, Body, Delete } from '@nestjs/common';
+import { Controller, Post, UseGuards, Request, Get, Param, ParseIntPipe, Patch, Body, Delete, Query, ValidationPipe } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { OrderStatus } from './order.entity';
 import { UpdateOrderStatusDto } from './DTO/update-order-status.dto';
+import { GetOrdersQueryDto } from './DTO/get-orders-query.dto';
 
 @Controller('orders')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -23,11 +24,44 @@ export class OrderController {
         return this.ordersService.getMyOrders(req.user.userId);
     }
 
-    @Get('all')
+    /* @Get('all')
     @Roles('admin')
     getAllOrders() {
         return this.ordersService.getAllOrders();
+    } */
+
+    @Get('all')
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('admin')
+    async getAllOrders(
+        @Query(new ValidationPipe({ transform: true })) query: GetOrdersQueryDto,
+    ) {
+        const page = query.page ?? 1;
+        const limit = query.limit ?? 10;
+        const sort = query.sort ?? 'createdAt';
+        const order = query.order ?? 'DESC';
+
+        const skip = (page - 1) * limit;
+
+        const [data, total] = await this.ordersService.getFilteredOrders({
+            skip,
+            take: limit,
+            sort,
+            order,
+            userId: query.userId,
+            status: query.status,
+        });
+
+        return {
+            data,
+            total,
+            currentPage: query.page,
+            totalPages: Math.ceil(total / limit),
+        };
     }
+
+
+
 
     @Get(':id')
     @Roles('admin')

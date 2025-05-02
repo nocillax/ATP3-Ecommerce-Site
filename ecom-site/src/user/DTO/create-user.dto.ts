@@ -1,5 +1,5 @@
 import { UserRole } from '../user.entity';
-import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString, Max, MaxLength, MinLength } from 'class-validator';
 
 
 export class CreateUserDto {
@@ -15,6 +15,8 @@ export class CreateUserDto {
   
     @IsOptional()
     @IsString()
+    @MinLength(6)
+    @MaxLength(15)
     phone?: string;
   
     @IsOptional()

@@ -1,0 +1,52 @@
+import { IsOptional, IsInt, IsPositive, IsIn, IsString, IsNumber, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class GetProductsQueryDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  page?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  limit?: number;
+
+  @IsOptional()
+  @IsIn(['createdAt', 'price', 'name', 'rating'], {
+    message: 'sort must be one of: createdAt, price, name, rating',
+  })
+  sort?: string;
+
+  @IsOptional()
+  @IsIn(['ASC', 'DESC'])
+  order?: 'ASC' | 'DESC';
+
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsString()
+  category?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  minPrice?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  maxPrice?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  minRating?: number;
+}
