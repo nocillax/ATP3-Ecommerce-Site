@@ -1,9 +1,10 @@
-import { Controller, Post, UseGuards, Request, Get, Param, ParseIntPipe, Patch, Body } from '@nestjs/common';
+import { Controller, Post, UseGuards, Request, Get, Param, ParseIntPipe, Patch, Body, Delete } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { OrderStatus } from './order.entity';
+import { UpdateOrderStatusDto } from './DTO/update-order-status.dto';
 
 @Controller('orders')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -22,16 +23,16 @@ export class OrderController {
         return this.ordersService.getMyOrders(req.user.userId);
     }
 
-    @Get('admin/all')
+    @Get('all')
     @Roles('admin')
     getAllOrders() {
         return this.ordersService.getAllOrders();
     }
 
     @Get(':id')
-    @Roles('customer')
-    getOrderById(@Request() req: any, @Param('id', ParseIntPipe) id: number) {
-        return this.ordersService.getOrderById(req.user.userId, id);
+    @Roles('admin')
+    getOrderById(@Param('id', ParseIntPipe) id: number) {
+        return this.ordersService.getOrderById(id);
     }
 
     @Patch('cancel/:id')
@@ -40,9 +41,15 @@ export class OrderController {
         return this.ordersService.cancelOrder(req.user.userId, id);
     }
 
-    @Patch('admin/update-status/:id')
+    @Patch('update-status/:id')
     @Roles('admin')
-    updateOrderStatus(@Param('id', ParseIntPipe) id: number, @Body('status') status: OrderStatus) {
-        return this.ordersService.updateOrderStatus(id, status);
+    updateOrderStatus(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateOrderStatusDto) {
+        return this.ordersService.updateOrderStatus(id, dto.status);
+    }
+
+    @Delete(':id')
+    @Roles('admin')
+    deleteOrder(@Param('id', ParseIntPipe) id: number) {
+        return this.ordersService.deleteOrder(id);
     }
 }

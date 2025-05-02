@@ -20,6 +20,7 @@ export class UsersController {
     async publicSignUp(@Body() dto: CreateUserDto): Promise<User> {
         return this.usersService.publicSignUp(dto);
     }
+    
     @Post()
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles('admin')

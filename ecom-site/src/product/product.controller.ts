@@ -2,7 +2,7 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ProductsService } from './product.service';
 import { CreateProductDto } from './DTO/create-product.dto';
 import { UpdateProductDto } from './DTO/update-product.dto';
@@ -23,13 +23,41 @@ export class ProductsController {
         return this.productsService.addProduct(dto);
     }
 
-    // Allow all
+
     @Get()
-    getProducts(): Promise<Product[]> {
-        return this.productsService.getProducts();
+    async getProducts(
+        @Query('page') page = 1,
+        @Query('limit') limit = 10,
+        @Query('sort') sort = 'createdAt',
+        @Query('order') order: 'ASC' | 'DESC' = 'DESC',
+        @Query('search') search?: string,
+        @Query('category') category?: string,
+        @Query('minPrice') minPrice?: number,
+        @Query('maxPrice') maxPrice?: number,
+        @Query('minRating') minRating?: number,
+    ){
+        const skip = (page - 1) * limit;
+        const [data, total] = await this.productsService.getPaginatedProducts({
+            skip, 
+            take: limit, 
+            sort, 
+            order,
+            search,
+            category,
+            minPrice,
+            maxPrice,
+            minRating,    
+        });
+
+        return { 
+            data, 
+            total,
+            currentPage: page,
+            totalPages: Math.ceil(total / limit),
+        };
     }
 
-    // Allow all
+
     @Get(':id')
     getProductById(@Param('id', ParseIntPipe) id: number): Promise<Product> {
         return this.productsService.getProductById(id);

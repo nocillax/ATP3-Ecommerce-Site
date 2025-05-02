@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany, UpdateDateColumn, CreateDateColumn } from 'typeorm';
 import { Product } from '../product/product.entity';
 import { Exclude } from 'class-transformer';
 
@@ -15,4 +15,10 @@ export class Category {
 
   @ManyToMany(() => Product, (product) => product.categories)
   products: Product[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

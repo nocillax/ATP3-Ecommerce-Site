@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Cart } from "./cart.entity";
 import { Product } from "src/product/product.entity";
 import { Exclude } from "class-transformer";
@@ -19,4 +19,10 @@ export class CartItem {
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

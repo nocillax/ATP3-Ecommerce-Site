@@ -67,15 +67,73 @@ export class ProductsService {
         return await this.productRepo.save(product);
     }
 
-    async getProducts(): Promise<Product[]> {
-        const products = await this.productRepo.find();
+    async getPaginatedProducts(params: {
+        skip: number,
+        take: number,
+        sort: string,
+        order: 'ASC' | 'DESC',
+        search?: string,
+        category?: string,
+        minPrice?: number,
+        maxPrice?: number,
+        minRating?: number,
+    }): Promise<[Product[], number]> {
+
+        const qb = this.productRepo.createQueryBuilder('product')
+        .leftJoinAndSelect('product.categories', 'category')
+        .leftJoinAndSelect('product.reviews', 'review')
+        .leftJoinAndSelect('review.user', 'user')
+        .skip(params.skip)
+        .take(params.take)
+        .orderBy(`product.${params.sort}`, params.order);
+
+        if (params.search) {
+            qb.andWhere('product.name ILIKE :search', { search: `%${params.search}%` });
+        }
+
+        if (params.category) {
+            qb.andWhere('LOWER(category.name) = LOWER(:categoryName)', {
+                categoryName: params.category,
+            });
+        }
+
+        if (params.minPrice) {
+            qb.andWhere('product.price >= :minPrice', { minPrice: params.minPrice });
+        }
+
+        if (params.maxPrice) {
+            qb.andWhere('product.price <= :maxPrice', { maxPrice: params.maxPrice });
+        }
+
+        if (params.minRating) {
+            qb.andWhere('product.rating >= :minRating', { minRating: params.minRating });
+        }
+
+        const [products, total] = await qb.getManyAndCount();
+
+        if (products.length === 0) {
+            throw new NotFoundException('No products found');
+        }
+
+        return [products, total];
+
+    }
+
+
+/* 
+        const [products, total] = await this.productRepo.findAndCount({
+            skip,
+            take,
+            order: { [sort]: order },
+            relations: ['categories', 'reviews', 'reviews.user'],
+        });
 
         if (products.length === 0) {
             throw new NotFoundException('No products found');
         }
         
-        return products;
-    }
+        return [products, total];
+    } */
 
     async getProductById(id: number): Promise<Product> {
         const product = await this.findExistingProductById(id);

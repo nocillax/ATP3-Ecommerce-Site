@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Exclude } from "class-transformer";
 import { Cart } from "src/cart/cart.entity";
 import { Review } from "src/review/review.entity";
@@ -43,5 +43,11 @@ export class User {
 
     @OneToMany(() => Cart, (cart) => cart.user)
     cart: Cart[];
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
 
 }

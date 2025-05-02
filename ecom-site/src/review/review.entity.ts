@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, Unique, JoinColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, Unique, JoinColumn, UpdateDateColumn, CreateDateColumn } from "typeorm";
 import { User } from "src/user/user.entity";
 import { Product } from "src/product/product.entity";
 
@@ -21,4 +21,10 @@ export class Review {
     @ManyToOne(() => Product, product => product.reviews, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'productId' })
     product: Product;
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
 }
