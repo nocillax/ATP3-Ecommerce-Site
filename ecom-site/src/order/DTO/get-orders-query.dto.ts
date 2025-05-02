@@ -17,10 +17,7 @@ export class GetOrdersQueryDto {
   limit?: number = 10;
 
   @IsOptional()
-  @IsIn(['createdAt', 'totalPrice', 'id', 'status'], {
-    message: 'sort must be one of: createdAt, totalPrice, id, or status',
-  })
-  sort?: string = 'createdAt';
+  sort?: string;
 
 
   @IsOptional()

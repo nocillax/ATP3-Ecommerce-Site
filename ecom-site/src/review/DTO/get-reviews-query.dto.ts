@@ -15,7 +15,6 @@ export class GetReviewsQueryDto {
   limit?: number;
 
   @IsOptional()
-  @IsIn(['createdAt', 'rating'])
   sort?: string;
 
   @IsOptional()

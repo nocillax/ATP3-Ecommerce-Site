@@ -2,7 +2,7 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Controller, Delete, Get, Param, ParseIntPipe, Patch, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Param, ParseIntPipe, Patch, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { CategoriesService } from './category.service';
 import { Body, Post } from '@nestjs/common';
 import { CreateCategoryDto } from './DTO/create-category.dto';
@@ -10,6 +10,7 @@ import { Category } from './category.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
+import { GetCategoriesQueryDto } from './DTO/get-categories-query.dto';
 
 @Controller('categories')
 export class CategoriesController {
@@ -25,9 +26,13 @@ export class CategoriesController {
 
     // Allow all
     @Get()
-    getCategories(): Promise<Category[]> {
-        return this.categoriesService.getCategories();
+    async getCategories(
+        @Query(new ValidationPipe({ transform: true })) query: GetCategoriesQueryDto,
+    ): Promise<Category[]> {
+        
+        return this.categoriesService.getCategories(query.search);
     }
+
 
     // Allow all
     @Get(':id')

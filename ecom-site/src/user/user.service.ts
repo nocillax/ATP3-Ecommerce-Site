@@ -155,12 +155,13 @@ export class UsersService {
         return { message: `User with id ${id} deleted successfully` };
     }
 
-    async updateUser(requestUser: any, id: number, dto: UpdateUserDto): Promise<{ message: string }> {
-        if (requestUser.role !== 'admin' && requestUser.userId !== id) {
-            throw new ForbiddenException('You are not allowed to update this profile');
-        }
+    async updateUserById(id: number, dto: UpdateUserDto): Promise<{ message: string }> {
 
         const user = await this.findExistingUserById(id);
+
+        if (Object.keys(dto).length === 0) {
+            return { message: 'No changes provided' };
+        }
 
         if (dto.password) {
             const salt = 10;
@@ -174,4 +175,31 @@ export class UsersService {
 
         return { message: `User with id ${id} updated successfully` };
     }
+
+    async updateUserProfile(requestUser: any, dto: UpdateUserDto): Promise<{ message: string }> {
+        const user = await this.findExistingUserById(requestUser.userId);
+
+        if (Object.keys(dto).length === 0) {
+            return { message: 'No changes provided' };
+        }
+
+        if ('role' in dto) {
+            throw new ForbiddenException('You cannot change your role');
+        }
+
+        if (dto.password) {
+            const salt = 10;
+            const hashedPassword = await bcrypt.hash(dto.password, salt);
+            dto.password = hashedPassword;
+        }
+
+        Object.assign(user, dto);
+
+        await this.userRepo.save(user as User);
+
+        return { message: `User profile updated successfully` };
+    }
+
+
+
 }

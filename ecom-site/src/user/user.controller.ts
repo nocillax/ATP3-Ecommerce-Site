@@ -55,19 +55,6 @@ export class UsersController {
         };
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     @Get(':id')
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles('admin', 'customer')
@@ -101,16 +88,24 @@ export class UsersController {
 
     @Patch(':id')
     @UseGuards(AuthGuard('jwt'), RolesGuard)
-    @Roles('admin', 'customer')
+    @Roles('admin')
     updateUser(
         @Param('id', ParseIntPipe) id: number, 
-        @Body() dto: UpdateUserDto,
-        @Request() req: any
+        @Body() dto: UpdateUserDto
     ): Promise<{ message: string }> {
 
-        return this.usersService.updateUser(req.user, id, dto);
+        return this.usersService.updateUserById(id, dto);
     }
 
+    @Patch()
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('customer')
+    updateUserProfile(
+        @Request() req: any,
+        @Body() dto: UpdateUserDto,
+    ): Promise<{ message: string }> {
+        return this.usersService.updateUserProfile(req.user, dto);  
+    }
 
 
 }

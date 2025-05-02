@@ -15,9 +15,6 @@ export class GetProductsQueryDto {
   limit?: number;
 
   @IsOptional()
-  @IsIn(['createdAt', 'price', 'name', 'rating'], {
-    message: 'sort must be one of: createdAt, price, name, rating',
-  })
   sort?: string;
 
   @IsOptional()

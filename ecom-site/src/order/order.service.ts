@@ -5,6 +5,7 @@ import { Order, OrderStatus } from './order.entity';
 import { OrderItem } from './order-item.entity';
 import { CartService } from 'src/cart/cart.service';
 import { Cart } from 'src/cart/cart.entity';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class OrderService {
@@ -19,6 +20,7 @@ export class OrderService {
         private readonly dataSource: DataSource,
 
         private readonly cartService: CartService,
+        private readonly mailService: MailService,
     ) {}
 
 
@@ -67,12 +69,19 @@ export class OrderService {
     // ===========================================================================
 
 
-    async createOrder(userId: number): Promise<{ message: string }> {
+    async createOrder(userId: number, shippingAddress?: string): Promise<{ message: string }> {
 
         const cart = await this.cartService.findExistingCartByUserId(userId);
 
         if (!cart || cart.cartItems.length === 0) {
             throw new NotFoundException('Your cart is empty');
+        }
+
+        const user = cart.user;
+        const finalShippingAddress = shippingAddress || user.defaultShippingAddress;
+
+        if (!finalShippingAddress) {
+            throw new NotFoundException('No shipping address provided and no default address found');
         }
 
         const queryRunner = this.dataSource.createQueryRunner();
@@ -99,6 +108,7 @@ export class OrderService {
                 orderItems,
                 status: OrderStatus.PENDING,
                 totalPrice: totalOrderPrice,
+                shippingAddress: finalShippingAddress,
             });
 
             await queryRunner.manager.save(order);
@@ -109,6 +119,22 @@ export class OrderService {
             await queryRunner.manager.save(cart);
 
             await queryRunner.commitTransaction();
+            
+            await this.mailService.sendOrderConfirmation(
+                user.email,
+                'Your Order Confirmation',
+                `
+                    <h2>Hello ${user.name},</h2>
+                    <p>Thank you for your order!</p>
+                    <ul>
+                    <li><strong>Order ID:</strong> ${order.id}</li>
+                    <li><strong>Status:</strong> ${order.status}</li>
+                    <li><strong>Total:</strong> $${order.totalPrice}</li>
+                    </ul>
+                    <p>We will notify you once it's shipped.</p>
+                `
+            );
+
             return { message: 'Order placed successfully' };
         } 
         catch (error) {

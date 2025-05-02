@@ -29,9 +29,17 @@ export class ProductsController {
     async getProducts(
         @Query(new ValidationPipe({ transform: true })) query: GetProductsQueryDto,
     ){  
+
+        const SORT_FIELDS = {
+            createdat: 'createdAt',
+            price: 'price',
+            name: 'name',
+            rating: 'rating'
+        }
+
         const page = query.page ?? 1;
         const limit = query.limit ?? 10;
-        const sort = query.sort ?? 'createdAt';
+        const sort = SORT_FIELDS[query.sort?.toLowerCase() as keyof typeof SORT_FIELDS] ?? 'createdAt';
         const order = query.order ?? 'DESC';
 
         const skip = (page - 1) * limit;

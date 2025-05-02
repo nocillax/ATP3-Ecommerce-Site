@@ -50,15 +50,24 @@ export class CategoriesService {
         return await this.categoryRepo.save(category);
     }
 
-    async getCategories(): Promise<Category[]> {
-        const categories = await this.categoryRepo.find();
+    async getCategories(search?: string): Promise<Category[]> {
+        const qb = this.categoryRepo.createQueryBuilder('category');
+
+        if (search) {
+            qb.where('LOWER(category.name) LIKE :search', {
+            search: `%${search.toLowerCase()}%`,
+            });
+        }
+
+        const categories = await qb.getMany();
 
         if (categories.length === 0) {
             throw new NotFoundException('No categories found');
         }
-        
+
         return categories;
     }
+
 
     async getCategoryById(id: number): Promise<Category> {
         const category = await this.findExistingCategoryById(id);

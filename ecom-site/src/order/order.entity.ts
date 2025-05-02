@@ -32,4 +32,8 @@ export class Order {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @Column({ type: 'text'})
+    shippingAddress: string;
+
 }

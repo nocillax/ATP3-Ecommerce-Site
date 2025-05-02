@@ -42,9 +42,14 @@ export class ReviewsController {
     @Query(new ValidationPipe({ transform: true })) query: GetReviewsQueryDto,
     ): Promise<any> {
 
+        const SORT_FIELDS = {
+            createdat: 'createdAt',
+            rating: 'rating',
+        }
+
         const page = query.page ?? 1;
         const limit = query.limit ?? 10;
-        const sort = query.sort ?? 'createdAt';
+        const sort = SORT_FIELDS[query.sort?.toLowerCase() as keyof typeof SORT_FIELDS] ?? 'createdAt';
         const order = query.order ?? 'DESC';
         const skip = (page - 1) * limit;
 

@@ -1,3 +1,4 @@
+import { MailService } from './mail/mail.service';
 import { OrderModule } from './order/order.module';
 import { CartModule } from './cart/cart.module';
 import { CartController } from './cart/cart.controller';
@@ -42,8 +43,11 @@ import { ConfigService } from '@nestjs/config';
     OrderModule,
   ],
   controllers: [
+    MailService,
     AppController],
   providers: [
     AppService],
+  exports: [
+    MailService],
 })
 export class AppModule { }

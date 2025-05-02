@@ -50,4 +50,8 @@ export class User {
     @UpdateDateColumn()
     updatedAt: Date;
 
+    @Column({ type: 'text', nullable: true })
+    defaultShippingAddress: string;
+
+
 }
