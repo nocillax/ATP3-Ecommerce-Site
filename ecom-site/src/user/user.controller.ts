@@ -65,6 +65,7 @@ export class UsersController {
         return this.usersService.getUserById(req.user, id);
     }
 
+
     //Add Delete for customer seperately without id parameter
     @Delete(':id')
     @UseGuards(AuthGuard('jwt'), RolesGuard)
