@@ -1,3 +1,5 @@
+import { StripeModule } from './stripe/stripe.module';
+import { MailModule } from './mail/mail.module';
 import { MailService } from './mail/mail.service';
 import { OrderModule } from './order/order.module';
 import { CartModule } from './cart/cart.module';
@@ -16,6 +18,7 @@ import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
+    StripeModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -41,13 +44,11 @@ import { ConfigService } from '@nestjs/config';
     UsersModule,
     CartModule,
     OrderModule,
+    MailModule,
   ],
   controllers: [
-    MailService,
     AppController],
   providers: [
     AppService],
-  exports: [
-    MailService],
 })
 export class AppModule { }

@@ -7,66 +7,22 @@ import { OrderStatus } from './order.entity';
 import { UpdateOrderStatusDto } from './DTO/update-order-status.dto';
 import { GetOrdersQueryDto } from './DTO/get-orders-query.dto';
 import { CreateOrderDto } from './DTO/create-order.dto';
+import { initialize } from 'passport';
 
 @Controller('orders')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class OrderController {
     constructor(private readonly ordersService: OrderService) {}
 
-    @Post()
+    @Post('checkout')
     @Roles('customer')
-    createOrder(
+    initiateCheckout(
         @Request() req: any,
         @Body() dto: CreateOrderDto,
     ) {
-        return this.ordersService.createOrder(req.user.userId, dto.shippingAddress);
+        return this.ordersService.initiateCheckout(req.user.userId, dto.shippingAddress);
     }
 
-/* 
-    @Get()
-    @Roles('customer')
-    getMyOrders(@Request() req: any) {
-        return this.ordersService.getMyOrders(req.user.userId);
-    } */
-
-/* 
-    @Get('all')
-    @UseGuards(AuthGuard('jwt'), RolesGuard)
-    @Roles('admin')
-    async getAllOrders(
-        @Query(new ValidationPipe({ transform: true })) query: GetOrdersQueryDto,
-    ) {
-        
-        const SORT_FIELDS = {
-            id: 'id',
-            createdat: 'createdAt',
-            totalprice: 'totalPrice',
-            status: 'status',
-        }
-
-        const page = query.page ?? 1;
-        const limit = query.limit ?? 10;
-        const sort = SORT_FIELDS[query.sort?.toLowerCase() as keyof typeof SORT_FIELDS] ?? 'createdAt';
-        const order = query.order ?? 'DESC';
-
-        const skip = (page - 1) * limit;
-
-        const [data, total] = await this.ordersService.getFilteredOrders({
-            skip,
-            take: limit,
-            sort,
-            order,
-            userId: query.userId,
-            status: query.status,
-        });
-
-        return {
-            data,
-            total,
-            currentPage: query.page,
-            totalPages: Math.ceil(total / limit),
-        };
-    } */
     @Get()
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles('admin', 'customer')

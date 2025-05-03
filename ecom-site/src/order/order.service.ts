@@ -6,6 +6,11 @@ import { OrderItem } from './order-item.entity';
 import { CartService } from 'src/cart/cart.service';
 import { Cart } from 'src/cart/cart.entity';
 import { MailService } from 'src/mail/mail.service';
+import { buildOrderReceivedEmail } from 'src/mail/templates/order-recieved';
+import { buildOrderStatusUpdatedEmail } from 'src/mail/templates/order-status-updated';
+import { buildAdminOrderAlert } from 'src/mail/templates/admin-order-alert';
+import { buildOrderCancelledEmail } from 'src/mail/templates/order-cancelled';
+import { StripeService } from 'src/stripe/stripe.service';
 
 @Injectable()
 export class OrderService {
@@ -21,6 +26,7 @@ export class OrderService {
 
         private readonly cartService: CartService,
         private readonly mailService: MailService,
+        private readonly stripeService: StripeService
     ) {}
 
 
@@ -63,13 +69,180 @@ export class OrderService {
         }
     }
 
+    async calculateCartTotal(userId: number): Promise<number> {
+        const cart = await this.cartService.findExistingCartByUserId(userId);
+
+        if (!cart || cart.cartItems.length === 0) {
+            throw new NotFoundException('Your cart is empty');
+        }
+
+        const total = cart.cartItems.reduce((sum, item) => sum + Number(item.price), 0);
+        
+        return total;
+    }
+
+    private async processOrder(userId: number, shippingAddress?: string): Promise<any> {
+        const cart = await this.cartService.findExistingCartByUserId(userId);
+
+        if (!cart || cart.cartItems.length === 0) {
+            throw new NotFoundException('Your cart is empty');
+        }
+
+        const user = cart.user;
+        const finalShippingAddress = shippingAddress || user.defaultShippingAddress;
+
+        if (!finalShippingAddress) {
+            throw new NotFoundException('No shipping address provided and no default address found');
+        }
+
+        const orderItems = cart.cartItems.map(cartItem =>
+            this.orderItemRepo.create({
+            productName: cartItem.product.name,
+            productPrice: Number(cartItem.product.price),
+            quantity: cartItem.quantity,
+            totalPrice: Number(cartItem.price),
+            })
+        );
+
+        const totalOrderPrice = orderItems.reduce((sum, item) => sum + Number(item.totalPrice), 0);
+
+        const order = this.orderRepo.create({
+            user,
+            orderItems,
+            shippingAddress: finalShippingAddress,
+            totalPrice: totalOrderPrice,
+        });
+
+        return { cart, user, order };
+    }
+
+
+
 
     // ===========================================================================
     // API Functions
     // ===========================================================================
 
+    async initiateCheckout(userId: number, shippingAddress?: string): Promise<{ url: string }> {
+        const order = await this.processOrder(userId, shippingAddress);
+
+        const amountInPaisa = Math.round(order.totalPrice * 100);
+
+        const session = await this.stripeService.createCheckoutSession(amountInPaisa, userId);
+
+        return { url: session.url! };
+    }
 
     async createOrder(userId: number, shippingAddress?: string): Promise<{ message: string }> {
+        const queryRunner = this.dataSource.createQueryRunner();
+
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const { cart, user, order } = await this.processOrder(userId, shippingAddress);
+            order.status = OrderStatus.PENDING;
+            order.paymentStatus = 'UNPAID';
+
+            await queryRunner.manager.save(order);
+            await queryRunner.manager.delete('CartItem', { cart: { id: cart.id } });
+
+            cart.cartItems = [];
+            cart.totalPrice = 0;
+            await queryRunner.manager.save(cart);
+            await queryRunner.commitTransaction();
+
+            try {
+                await this.mailService.sendMail(
+                    user.email,
+                    'Your Order Has Been Received',
+                    buildOrderReceivedEmail(user, order),
+                );
+            } 
+            catch (error) {
+                console.error(`Failed to send order confirmation email for Order #${order.id}:`, error);
+            }
+
+            try {
+                await this.mailService.sendMail(
+                    'admin@example.com',
+                    'New Order Received',
+                    buildAdminOrderAlert(user, order),
+                );
+            } 
+            catch (err) {
+                console.error(`Failed to notify admin about order #${order.id}:`, err);
+            }
+
+            return { message: 'Order placed successfully' };
+        } 
+        catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } 
+        finally {
+            await queryRunner.release();
+        }
+    }
+
+    async finalizePaidOrder(userId: number, shippingAddress?: string): Promise<void> {
+        const queryRunner = this.dataSource.createQueryRunner();
+
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const { cart, user, order } = await this.processOrder(userId, shippingAddress);
+            order.status = OrderStatus.PENDING;
+            order.paymentStatus = 'PAID';
+
+            await queryRunner.manager.save(order);
+            await queryRunner.manager.delete('CartItem', { cart: { id: cart.id } });
+
+            cart.cartItems = [];
+            cart.totalPrice = 0;
+
+            await queryRunner.manager.save(cart);
+            await queryRunner.commitTransaction();
+
+            try {
+                await this.mailService.sendMail(
+                    user.email,
+                    'Your Order Has Been Received',
+                    buildOrderReceivedEmail(user, order),
+                );
+            } catch (error) {
+                console.error(`Failed to send order confirmation email for Order #${order.id}:`, error);
+            }
+
+            try {
+                await this.mailService.sendMail(
+                    'admin01@gmail.com',
+                    'New Order Received',
+                    buildAdminOrderAlert(user, order),
+                );
+            } 
+            catch (err) {
+                console.error(`Failed to notify admin about order #${order.id}:`, err);
+            }
+
+        } 
+        catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } 
+        finally {
+            await queryRunner.release();
+        }
+    }
+
+
+
+
+
+
+
+    /* async createOrder(userId: number, shippingAddress?: string): Promise<{ message: string }> {
 
         const cart = await this.cartService.findExistingCartByUserId(userId);
 
@@ -120,20 +293,28 @@ export class OrderService {
 
             await queryRunner.commitTransaction();
             
-            await this.mailService.sendOrderConfirmation(
-                user.email,
-                'Your Order Confirmation',
-                `
-                    <h2>Hello ${user.name},</h2>
-                    <p>Thank you for your order!</p>
-                    <ul>
-                    <li><strong>Order ID:</strong> ${order.id}</li>
-                    <li><strong>Status:</strong> ${order.status}</li>
-                    <li><strong>Total:</strong> $${order.totalPrice}</li>
-                    </ul>
-                    <p>We will notify you once it's shipped.</p>
-                `
-            );
+            try {
+                await this.mailService.sendMail(
+                    user.email,
+                    'Your Order Has Been Received',
+                    buildOrderReceivedEmail(user, order),
+                );
+            } 
+            catch (error) {
+                console.error(`Failed to send order confirmation email for Order #${order.id}:`, error);
+            }
+
+            try {
+                await this.mailService.sendMail(
+                    'admin@example.com',
+                    'New Order Received',
+                    buildAdminOrderAlert(user, order),
+                );
+            } 
+            catch (err) {
+                console.error(`Failed to notify admin about order #${order.id}:`, err);
+            }
+
 
             return { message: 'Order placed successfully' };
         } 
@@ -144,7 +325,7 @@ export class OrderService {
         finally {
             await queryRunner.release();
         }
-    }
+    } */
 
 
     async getMyOrders(userId: number): Promise<Order[]> {
@@ -202,6 +383,18 @@ export class OrderService {
         order.status = OrderStatus.CANCELLED;
         await this.orderRepo.save(order);
 
+        const user = order.user;
+        try {
+            await this.mailService.sendMail(
+                user.email,
+                'Your Order Has Been Cancelled',
+                buildOrderCancelledEmail(user, order),
+            );
+        } 
+        catch (err) {
+            console.error(`Failed to send cancellation email for order #${order.id}:`, err);
+        }
+
         return { message: 'Order cancelled successfully' };
     }
 
@@ -211,6 +404,21 @@ export class OrderService {
 
         order.status = status;
         await this.orderRepo.save(order);
+
+        const user = order.user;
+        if (user?.email) {
+
+            try {
+                await this.mailService.sendMail(
+                    user.email,
+                    'Your Order Status Has Been Updated',
+                    buildOrderStatusUpdatedEmail(user, order)
+                );
+            } 
+            catch (err) {
+                console.error(`Failed to send status update email for order ${orderId}:`, err);
+            }
+        }
 
         return { message: `Order status updated to ${status}` };
     }

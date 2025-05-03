@@ -36,4 +36,8 @@ export class Order {
     @Column({ type: 'text'})
     shippingAddress: string;
 
+    @Column({ default: 'UNPAID' })
+    paymentStatus: 'UNPAID' | 'PAID';
+
+
 }

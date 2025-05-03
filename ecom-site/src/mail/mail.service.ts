@@ -10,14 +10,14 @@ export class MailService {
   private transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: 'jarifchowdhury01@gmail.com',         // your Gmail
-      pass: 'vokj sgdt torp pzrc',  // app password (not your Gmail password)
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,  
     },
   });
 
-  async sendOrderConfirmation(to: string, subject: string, htmlBody: string): Promise<void> {
+  async sendMail(to: string, subject: string, htmlBody: string): Promise<void> {
     await this.transporter.sendMail({
-      from: '"Your Store" <your_email@gmail.com>',
+      from: `"NCX" <${process.env.SMTP_USER}>`,
       to,
       subject,
       html: htmlBody,
