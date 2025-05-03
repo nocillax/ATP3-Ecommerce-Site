@@ -2,7 +2,7 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Controller, NotFoundException, Post, RawBodyRequest, Req, Res, Headers, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, NotFoundException, Post, RawBodyRequest, Req, Res, Headers, UseGuards, HttpException, HttpStatus, Get } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { AuthGuard } from '@nestjs/passport';
 import { OrderService } from 'src/order/order.service';
@@ -64,5 +64,19 @@ export class StripeController {
 
     return { received: true }; // ✅ Let Nest handle the response serialization
   }
+
+  @Get('/success')
+getSuccessPage(@Res() res: Response) {
+  res.send('<h1>✅ Payment Successful!</h1><p>Your order has been placed.</p>');
+}
+
+@Get('/cancel')
+getCancelPage(@Res() res: Response) {
+  res.send('<h1>❌ Payment Cancelled</h1><p>Your order was not processed.</p>');
+}
+
+
+
+
 }
 

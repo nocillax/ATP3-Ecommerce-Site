@@ -30,8 +30,8 @@ export class StripeService {
       metadata: {
         userId: userId.toString(),
       },
-      success_url: 'http://localhost:3000/success',
-      cancel_url: 'http://localhost:3000/cancel',
+      success_url: 'http://localhost:3000/payment/success',
+      cancel_url: 'http://localhost:3000/payment/cancel',
     });
 
     return { url: session.url! };
