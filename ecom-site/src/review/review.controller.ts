@@ -26,7 +26,8 @@ export class ReviewsController {
         return this.reviewsService.addReview(req.user, dto);
     }
 
-    
+    // Customer need to see-edit-dlt their own reviews with product id not review id
+    // Fix that
     @Get(':id')
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles('admin')
