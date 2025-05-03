@@ -65,17 +65,7 @@ export class UsersController {
         return this.usersService.getUserById(req.user, id);
     }
 
-    @Get(':email')
-    @UseGuards(AuthGuard('jwt'), RolesGuard)
-    @Roles('admin', 'customer')
-    getUserByEmail(
-        @Param('email') email: string,
-        @Request() req: any
-    ): Promise<User> {
-        return this.usersService.getUserByEmail(req.user, email);
-    }
-    
-
+    //Add Delete for customer seperately without id parameter
     @Delete(':id')
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles('admin', 'customer')
