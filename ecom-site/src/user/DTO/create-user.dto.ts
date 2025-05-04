@@ -23,7 +23,6 @@ export class CreateUserDto {
     @IsEnum(UserRole)
     role?: UserRole;
 
-    @IsOptional()
     @IsString()
-    defaultShippingAddress?: string;
+    defaultShippingAddress: string;
   }

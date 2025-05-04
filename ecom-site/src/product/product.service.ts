@@ -119,22 +119,7 @@ export class ProductsService {
 
     }
 
-
-/* 
-        const [products, total] = await this.productRepo.findAndCount({
-            skip,
-            take,
-            order: { [sort]: order },
-            relations: ['categories', 'reviews', 'reviews.user'],
-        });
-
-        if (products.length === 0) {
-            throw new NotFoundException('No products found');
-        }
-        
-        return [products, total];
-    } */
-
+    
     async getProductById(id: number): Promise<Product> {
         const product = await this.findExistingProductById(id);
 

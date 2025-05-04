@@ -21,9 +21,9 @@ export class StripeController {
     async checkout(@Req() req: any) {
     const userId = req.user.userId;
     const total = await this.orderService.calculateCartTotal(userId);
-    const amountInPaisa = Math.round(total * 100);
+    const amountInCents = Math.round(total * 100);
 
-    const session = await this.stripeService.createCheckoutSession(amountInPaisa, userId);
+    const session = await this.stripeService.createCheckoutSession(amountInCents, userId);
     return { url: session.url };
     }
 

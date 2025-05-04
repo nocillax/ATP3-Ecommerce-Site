@@ -94,12 +94,6 @@ export class CartService {
         return cart.cartItems.find(item => item.product.id === productId);  // Find cart item by product ID
     }
 
-    /* async calculateCartTotalPrice(cart: Cart): Promise<number> {
-        return cart.cartItems.reduce((sum, item) => {
-            return sum + (Number(item.price) * item.quantity);
-        }, 0);
-    } */
-
 
 async clearCart(userId: number): Promise<{ message: string }> {
     const cart = await this.findExistingCartByUserId(userId);
@@ -118,8 +112,6 @@ async clearCart(userId: number): Promise<{ message: string }> {
 
     return { message: 'Cart cleared successfully' };
 }
-
-
 
 
 

@@ -126,9 +126,10 @@ export class OrderService {
     async initiateCheckout(userId: number, shippingAddress?: string): Promise<{ url: string }> {
         const order = await this.processOrder(userId, shippingAddress);
 
-        const amountInPaisa = Math.round(order.totalPrice * 100);
+        const amountInCents = Math.round(Number(order.totalPrice) * 100);
 
-        const session = await this.stripeService.createCheckoutSession(amountInPaisa, userId);
+
+        const session = await this.stripeService.createCheckoutSession(amountInCents, userId);
 
         return { url: session.url! };
     }
@@ -193,11 +194,11 @@ export class OrderService {
 
         try {
             const { cart, user, order } = await this.processOrder(userId, shippingAddress);
+            console.log('Order is Processed:', order);
             order.status = OrderStatus.PENDING;
             order.paymentStatus = 'PAID';
 
             await queryRunner.manager.save(order);
-            await queryRunner.manager.delete('CartItem', { cart: { id: cart.id } });
 
             cart.cartItems = [];
             cart.totalPrice = 0;
@@ -235,97 +236,6 @@ export class OrderService {
             await queryRunner.release();
         }
     }
-
-
-
-
-
-
-
-    /* async createOrder(userId: number, shippingAddress?: string): Promise<{ message: string }> {
-
-        const cart = await this.cartService.findExistingCartByUserId(userId);
-
-        if (!cart || cart.cartItems.length === 0) {
-            throw new NotFoundException('Your cart is empty');
-        }
-
-        const user = cart.user;
-        const finalShippingAddress = shippingAddress || user.defaultShippingAddress;
-
-        if (!finalShippingAddress) {
-            throw new NotFoundException('No shipping address provided and no default address found');
-        }
-
-        const queryRunner = this.dataSource.createQueryRunner();
-
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
-        try {
-            const orderItems = cart.cartItems.map(cartItem => {
-
-                return this.orderItemRepo.create({
-
-                    productName: cartItem.product.name,
-                    productPrice: Number(cartItem.product.price),
-                    quantity: cartItem.quantity,
-                    totalPrice: Number(cartItem.price),
-                });
-            });
-
-            const totalOrderPrice = orderItems.reduce((sum, item) => sum + Number(item.totalPrice), 0);
-
-            const order = this.orderRepo.create({
-                user: cart.user,
-                orderItems,
-                status: OrderStatus.PENDING,
-                totalPrice: totalOrderPrice,
-                shippingAddress: finalShippingAddress,
-            });
-
-            await queryRunner.manager.save(order);
-            await queryRunner.manager.delete('CartItem', { cart: { id: cart.id } });
-
-            cart.cartItems = [];
-            cart.totalPrice = 0;
-            await queryRunner.manager.save(cart);
-
-            await queryRunner.commitTransaction();
-            
-            try {
-                await this.mailService.sendMail(
-                    user.email,
-                    'Your Order Has Been Received',
-                    buildOrderReceivedEmail(user, order),
-                );
-            } 
-            catch (error) {
-                console.error(`Failed to send order confirmation email for Order #${order.id}:`, error);
-            }
-
-            try {
-                await this.mailService.sendMail(
-                    'admin@example.com',
-                    'New Order Received',
-                    buildAdminOrderAlert(user, order),
-                );
-            } 
-            catch (err) {
-                console.error(`Failed to notify admin about order #${order.id}:`, err);
-            }
-
-
-            return { message: 'Order placed successfully' };
-        } 
-        catch (error) {
-            await queryRunner.rollbackTransaction();
-            throw error;
-        } 
-        finally {
-            await queryRunner.release();
-        }
-    } */
 
 
     async getMyOrders(userId: number): Promise<Order[]> {

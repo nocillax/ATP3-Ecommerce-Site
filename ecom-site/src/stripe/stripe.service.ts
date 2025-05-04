@@ -9,7 +9,7 @@ import Stripe from 'stripe';
 export class StripeService {
   private stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-  async createCheckoutSession(amountInPaisa: number, userId: number): Promise<{ url: string }> {
+  async createCheckoutSession(amountInCents: number, userId: number): Promise<{ url: string }> {
 
     const session = await this.stripe.checkout.sessions.create({
 
@@ -18,8 +18,8 @@ export class StripeService {
       line_items: [
         {
           price_data: {
-            currency: 'bdt',
-            unit_amount: amountInPaisa, 
+            currency: 'usd',
+            unit_amount: amountInCents, 
             product_data: {
               name: 'NCX Order',
             },
