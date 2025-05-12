@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Order, OrderStatus } from './order.entity';
@@ -11,6 +11,7 @@ import { buildOrderStatusUpdatedEmail } from 'src/mail/templates/order-status-up
 import { buildAdminOrderAlert } from 'src/mail/templates/admin-order-alert';
 import { buildOrderCancelledEmail } from 'src/mail/templates/order-cancelled';
 import { StripeService } from 'src/stripe/stripe.service';
+import { Product } from 'src/product/product.entity';
 
 @Injectable()
 export class OrderService {
@@ -20,6 +21,9 @@ export class OrderService {
 
         @InjectRepository(OrderItem)
         private readonly orderItemRepo: Repository<OrderItem>,
+
+        @InjectRepository(Product)
+        private readonly productRepo: Repository<Product>,
 
         @InjectDataSource() 
         private readonly dataSource: DataSource,
@@ -81,41 +85,76 @@ export class OrderService {
         return total;
     }
 
+    
+
     private async processOrder(userId: number, shippingAddress?: string): Promise<any> {
-        const cart = await this.cartService.findExistingCartByUserId(userId);
+    const cart = await this.cartService.findExistingCartByUserId(userId);
 
-        if (!cart || cart.cartItems.length === 0) {
-            throw new NotFoundException('Your cart is empty');
-        }
+    if (!cart || cart.cartItems.length === 0) {
+        throw new NotFoundException('Your cart is empty');
+    }
 
-        const user = cart.user;
-        const finalShippingAddress = shippingAddress || user.defaultShippingAddress;
+    const user = cart.user;
+    const finalShippingAddress = shippingAddress || user.defaultShippingAddress;
 
-        if (!finalShippingAddress) {
-            throw new NotFoundException('No shipping address provided and no default address found');
-        }
+    if (!finalShippingAddress) {
+        throw new BadRequestException('No shipping address provided and no default address found');
+    }
 
-        const orderItems = cart.cartItems.map(cartItem =>
-            this.orderItemRepo.create({
+    const orderItems = cart.cartItems.map(cartItem =>
+        this.orderItemRepo.create({
             productName: cartItem.product.name,
             productPrice: Number(cartItem.product.price),
             quantity: cartItem.quantity,
             totalPrice: Number(cartItem.price),
-            })
-        );
+        })
+    );
 
-        const totalOrderPrice = orderItems.reduce((sum, item) => sum + Number(item.totalPrice), 0);
+    const totalOrderPrice = orderItems.reduce(
+        (sum, item) => sum + Number(item.totalPrice),
+        0
+    );
 
-        const order = this.orderRepo.create({
-            user,
-            orderItems,
-            shippingAddress: finalShippingAddress,
-            totalPrice: totalOrderPrice,
-        });
+    const order = this.orderRepo.create({
+        user,
+        orderItems,
+        shippingAddress: finalShippingAddress,
+        totalPrice: totalOrderPrice,
+    });
 
-        return { cart, user, order };
+    return { cart, user, order };
+}
+
+
+async validateCheckout(userId: number, shippingAddress?: string): Promise<void> {
+    const cart = await this.cartService.findExistingCartByUserId(userId);
+    if (!cart || cart.cartItems.length === 0) {
+        throw new BadRequestException('Your cart is empty');
     }
 
+    const user = cart.user;
+    const finalShippingAddress = shippingAddress || user.defaultShippingAddress;
+
+    if (!finalShippingAddress) {
+        throw new BadRequestException('No shipping address provided and no default address found');
+    }
+
+    for (const cartItem of cart.cartItems) {
+        const product = await this.productRepo.findOne({
+            where: { id: cartItem.product.id },
+        });
+
+        if (!product) {
+            throw new NotFoundException(`Product with ID ${cartItem.product.id} not found`);
+        }
+
+        if (product.quantity < cartItem.quantity) {
+            throw new BadRequestException(
+                `Not enough stock for ${product.name}. Available: ${product.quantity}, Requested: ${cartItem.quantity}`
+            );
+        }
+    }
+}
 
 
 
@@ -123,7 +162,81 @@ export class OrderService {
     // API Functions
     // ===========================================================================
 
-    async initiateCheckout(userId: number, shippingAddress?: string): Promise<{ url: string }> {
+    
+
+    async finalizePaidOrder(userId: number, shippingAddress?: string): Promise<void> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+        const { cart, user, order } = await this.processOrder(userId, shippingAddress);
+
+
+        for (const cartItem of cart.cartItems) {
+            const product = await queryRunner.manager.findOne(Product, {
+                where: { id: cartItem.product.id },
+            });
+
+            if (!product) {
+                throw new NotFoundException(`Product with ID ${cartItem.product.id} not found`);
+            }
+
+            if (product.quantity < cartItem.quantity) {
+                throw new BadRequestException(
+                    `Not enough stock for ${product.name}. Available: ${product.quantity}, Requested: ${cartItem.quantity}`
+                );
+            }
+
+            product.quantity -= cartItem.quantity;
+            await queryRunner.manager.save(product);
+        }
+
+        order.status = OrderStatus.PENDING;
+        order.paymentStatus = 'PAID';
+        await queryRunner.manager.save(order);
+
+        cart.cartItems = [];
+        cart.totalPrice = 0;
+        await queryRunner.manager.save(cart);
+
+        await queryRunner.commitTransaction();
+
+        try {
+            await this.mailService.sendMail(
+                user.email,
+                'Your Order Has Been Received',
+                buildOrderReceivedEmail(user, order),
+            );
+        } 
+        catch (error) {
+            console.error(`Failed to send order confirmation email for Order #${order.id}:`, error);
+        }
+
+        try {
+            await this.mailService.sendMail(
+                'admin01@gmail.com',
+                'New Order Received',
+                buildAdminOrderAlert(user, order),
+            );
+        } 
+        catch (err) {
+            console.error(`Failed to notify admin about order #${order.id}:`, err);
+        }
+
+    } 
+    catch (error) {
+        await queryRunner.rollbackTransaction();
+        throw error;
+    } 
+    finally {
+        await queryRunner.release();
+    }
+}
+
+
+
+    /* async initiateCheckout(userId: number, shippingAddress?: string): Promise<{ url: string }> {
         const order = await this.processOrder(userId, shippingAddress);
 
         const amountInCents = Math.round(Number(order.totalPrice) * 100);
@@ -184,58 +297,8 @@ export class OrderService {
         finally {
             await queryRunner.release();
         }
-    }
+    } */
 
-    async finalizePaidOrder(userId: number, shippingAddress?: string): Promise<void> {
-        const queryRunner = this.dataSource.createQueryRunner();
-
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
-        try {
-            const { cart, user, order } = await this.processOrder(userId, shippingAddress);
-            console.log('Order is Processed:', order);
-            order.status = OrderStatus.PENDING;
-            order.paymentStatus = 'PAID';
-
-            await queryRunner.manager.save(order);
-
-            cart.cartItems = [];
-            cart.totalPrice = 0;
-
-            await queryRunner.manager.save(cart);
-            await queryRunner.commitTransaction();
-
-            try {
-                await this.mailService.sendMail(
-                    user.email,
-                    'Your Order Has Been Received',
-                    buildOrderReceivedEmail(user, order),
-                );
-            } catch (error) {
-                console.error(`Failed to send order confirmation email for Order #${order.id}:`, error);
-            }
-
-            try {
-                await this.mailService.sendMail(
-                    'admin01@gmail.com',
-                    'New Order Received',
-                    buildAdminOrderAlert(user, order),
-                );
-            } 
-            catch (err) {
-                console.error(`Failed to notify admin about order #${order.id}:`, err);
-            }
-
-        } 
-        catch (error) {
-            await queryRunner.rollbackTransaction();
-            throw error;
-        } 
-        finally {
-            await queryRunner.release();
-        }
-    }
 
 
     async getMyOrders(userId: number): Promise<Order[]> {

@@ -14,14 +14,14 @@ import { initialize } from 'passport';
 export class OrderController {
     constructor(private readonly ordersService: OrderService) {}
 
-    @Post('checkout')
+    /* @Post('checkout')
     @Roles('customer')
     initiateCheckout(
         @Request() req: any,
         @Body() dto: CreateOrderDto,
     ) {
         return this.ordersService.initiateCheckout(req.user.userId, dto.shippingAddress);
-    }
+    } */
 
     @Get()
     @UseGuards(AuthGuard('jwt'), RolesGuard)

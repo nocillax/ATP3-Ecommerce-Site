@@ -9,7 +9,7 @@ import Stripe from 'stripe';
 export class StripeService {
   private stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-  async createCheckoutSession(amountInCents: number, userId: number): Promise<{ url: string }> {
+  async createCheckoutSession(amountInCents: number, userId: number, shippingAddress?: string): Promise<{ url: string }> {
 
     const session = await this.stripe.checkout.sessions.create({
 
@@ -29,6 +29,7 @@ export class StripeService {
       ],
       metadata: {
         userId: userId.toString(),
+        shippingAddress: shippingAddress || '',
       },
       success_url: 'http://localhost:3000/payment/success',
       cancel_url: 'http://localhost:3000/payment/cancel',
