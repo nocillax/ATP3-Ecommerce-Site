@@ -3,6 +3,9 @@ import { IsEmail, IsEnum, IsOptional, IsString, Max, MaxLength, MinLength } from
 
 
 export class CreateUserDto {
+
+  //
+
     @IsString()
     name: string;
   
