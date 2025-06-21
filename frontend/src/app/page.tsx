@@ -1,13 +1,27 @@
-import React, { Component } from "react";
+import HeroSection from "@/components/HeroSection";
+import Header from "@/components/Header";
+import FeaturedCategories from "@/components/FeaturedCategories";
+import OffersSection from "@/components/OffersSection";
+import BestSellers from "@/components/BestSellers";
+import NewArrivals from "@/components/NewArrivals";
+import CollectionShowcase from "@/components/CollectionShowcase";
+import Footer from "@/components/Footer";
 
-export class Home extends Component {
-  render() {
-    return (
-      <div>
-        <h1>Unveil A New Look Everyday.</h1>
-      </div>
-    );
-  }
-}
+const Index = () => {
+  return (
+    <div className="min-h-screen bg-mint-light">
+      <Header />
+      <main>
+        <HeroSection />
+        <FeaturedCategories />
+        <OffersSection />
+        <BestSellers />
+        <NewArrivals />
+        <CollectionShowcase />
+      </main>
+      <Footer />
+    </div>
+  );
+};
 
-export default Home;
+export default Index;

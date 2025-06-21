@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany, UpdateDateColumn, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToMany,
+  UpdateDateColumn,
+  CreateDateColumn,
+} from 'typeorm';
 import { Product } from '../product/product.entity';
 import { Exclude } from 'class-transformer';
 
@@ -21,4 +29,10 @@ export class Category {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({ nullable: true })
+  imageUrl: string;
+
+  @Column({ default: false })
+  isFeatured: boolean;
 }

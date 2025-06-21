@@ -1,7 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
-import { Cart } from "./cart.entity";
-import { Product } from "src/product/product.entity";
-import { Exclude } from "class-transformer";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Cart } from './cart.entity';
+import { Product } from 'src/product/product.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class CartItem {

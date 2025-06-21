@@ -1,4 +1,13 @@
-import { IsOptional, IsInt, IsPositive, IsIn, IsString, IsNumber, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsInt,
+  IsPositive,
+  IsIn,
+  IsString,
+  IsNumber,
+  Min,
+  IsBoolean,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class GetProductsQueryDto {
@@ -46,4 +55,14 @@ export class GetProductsQueryDto {
   @IsNumber()
   @Min(0)
   minRating?: number;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  isOnSale?: boolean;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  isFeatured?: boolean;
 }

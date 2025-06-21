@@ -8,89 +8,93 @@ import { Category } from './category.entity';
 import { In, Repository } from 'typeorm';
 import { CreateCategoryDto } from './DTO/create-category.dto';
 import { UpdateCategoryDto } from './DTO/update-category.dto';
+import { GetCategoriesQueryDto } from './DTO/get-categories-query.dto';
 
 @Injectable()
-export class CategoriesService { 
-    constructor(
-        @InjectRepository(Category)
-        private readonly categoryRepo: Repository<Category>,
-    ) {}
+export class CategoriesService {
+  constructor(
+    @InjectRepository(Category)
+    private readonly categoryRepo: Repository<Category>,
+  ) {}
 
-    // ===========================================================================
-    //  Internal Functions
-    // ===========================================================================
+  // ===========================================================================
+  //  Internal Functions
+  // ===========================================================================
 
-    async findCategoryById(id: number): Promise<Category | null> {
-        return await this.categoryRepo.findOneBy({ id });
+  async findCategoryById(id: number): Promise<Category | null> {
+    return await this.categoryRepo.findOneBy({ id });
+  }
+
+  async findExistingCategoryById(id: number): Promise<Category> {
+    const category = await this.categoryRepo.findOneBy({ id });
+    if (!category) {
+      throw new NotFoundException(`Category with id ${id} not found`);
     }
 
-    async findExistingCategoryById(id: number): Promise<Category> {
-        const category = await this.categoryRepo.findOneBy({ id });
-        if (!category) {
-            throw new NotFoundException(`Category with id ${id} not found`);
-        }
+    return category;
+  }
 
-        return category;
+  async getCategoriesByIds(ids: number[]): Promise<Category[]> {
+    return await this.categoryRepo.find({
+      where: { id: In(ids) },
+    });
+  }
+
+  // ===========================================================================
+  //  Public API Functions
+  // ===========================================================================
+
+  async addCategory(dto: CreateCategoryDto): Promise<Category> {
+    const category = this.categoryRepo.create(dto);
+    return await this.categoryRepo.save(category);
+  }
+
+  async getCategories(query: GetCategoriesQueryDto): Promise<Category[]> {
+    const qb = this.categoryRepo.createQueryBuilder('category');
+
+    if (query.search) {
+      qb.where('LOWER(category.name) LIKE :search', {
+        search: `%${query.search.toLowerCase()}%`,
+      });
     }
 
-    async getCategoriesByIds(ids: number[]): Promise<Category[]> {
-        return await this.categoryRepo.find({
-            where: { id: In(ids) },
-        });
+    if (typeof query.isFeatured === 'boolean') {
+      qb.andWhere('category.isFeatured = :isFeatured', {
+        isFeatured: query.isFeatured,
+      });
     }
 
+    const categories = await qb.getMany();
 
-    // ===========================================================================
-    //  Public API Functions
-    // ===========================================================================
-
-
-    async addCategory(dto: CreateCategoryDto): Promise<Category> {
-        const category = this.categoryRepo.create(dto);
-        return await this.categoryRepo.save(category);
+    if (categories.length === 0) {
+      throw new NotFoundException('No categories found');
     }
 
-    async getCategories(search?: string): Promise<Category[]> {
-        const qb = this.categoryRepo.createQueryBuilder('category');
+    return categories;
+  }
 
-        if (search) {
-            qb.where('LOWER(category.name) LIKE :search', {
-            search: `%${search.toLowerCase()}%`,
-            });
-        }
+  async getCategoryById(id: number): Promise<Category> {
+    const category = await this.findExistingCategoryById(id);
 
-        const categories = await qb.getMany();
+    return category;
+  }
 
-        if (categories.length === 0) {
-            throw new NotFoundException('No categories found');
-        }
+  async deleteCategory(id: number): Promise<{ message: string }> {
+    await this.findExistingCategoryById(id);
+    await this.categoryRepo.delete(id);
 
-        return categories;
-    }
+    return { message: `Category with id ${id} deleted successfully` };
+  }
 
+  async updateCategory(
+    id: number,
+    dto: UpdateCategoryDto,
+  ): Promise<{ message: string }> {
+    const category = await this.findExistingCategoryById(id);
 
-    async getCategoryById(id: number): Promise<Category> {
-        const category = await this.findExistingCategoryById(id);
+    Object.assign(category, dto);
+    await this.categoryRepo.save(category as Category);
 
-        return category;
-    }
-
-
-    async deleteCategory(id: number): Promise<{ message: string }> {
-        await this.findExistingCategoryById(id);
-        await this.categoryRepo.delete(id);
-
-        return { message: `Category with id ${id} deleted successfully` };
-    }
-
-    async updateCategory(id: number, dto: UpdateCategoryDto): Promise<{message: string}> {
-        const category = await this.findExistingCategoryById(id);
-
-        Object.assign(category, dto);
-        await this.categoryRepo.save(category as Category);
-
-        return { message: `Category with id ${id} updated successfully` };   
-    }
-
-
+    return { message: `Category with id ${id} updated successfully` };
+  }
 }
