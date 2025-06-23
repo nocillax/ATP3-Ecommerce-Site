@@ -51,6 +51,14 @@
   .btn-dark {
     @apply bg-dark-gray text-mint-light hover:bg-dark-gray/90 font-reem-kufi font-bold text-sm leading-normal tracking-wide;
   }
+
+  .input-box {
+    @apply px-4 py-2 text-sm border border-brown/50 rounded bg-white text-dark-gray placeholder:text-dark-gray/60 focus:outline-none w-full;
+  }
+
+  .stripe-btn {
+    @apply bg-[#635BFF] text-white hover:bg-[#5345e0] transition;
+  }
 }
 
 /* Custom scrollbar */

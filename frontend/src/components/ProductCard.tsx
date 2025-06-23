@@ -6,6 +6,8 @@ interface ProductCardProps {
   originalPrice?: number;
   image: string;
   isNew?: boolean;
+  rating?: number;
+  reviewsCount?: number;
 }
 
 const ProductCard = ({
@@ -16,6 +18,8 @@ const ProductCard = ({
   originalPrice,
   image,
   isNew = false,
+  rating,
+  reviewsCount,
 }: ProductCardProps) => {
   return (
     <div className="w-[186px] bg-mint-light rounded-md border border-light-green shadow-category overflow-hidden group hover:shadow-lg transition-shadow">
@@ -41,6 +45,48 @@ const ProductCard = ({
             <p className="font-crimson text-sm text-dark-gray">{subtitle}</p>
           )}
         </div>
+
+        {/* Rating */}
+        {rating && (
+          <div className="flex items-center gap-1 mb-1">
+            {[1, 2, 3, 4, 5].map((star) => {
+              const isFilled = rating >= star;
+              const isHalf = rating >= star - 0.5 && rating < star;
+              return (
+                <svg
+                  key={star}
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill={isFilled ? "#facc15" : isHalf ? "url(#half)" : "none"}
+                  viewBox="0 0 24 24"
+                  stroke="#facc15"
+                  strokeWidth="1.5"
+                  className="w-3 h-3"
+                >
+                  {isHalf && (
+                    <defs>
+                      <linearGradient id="half">
+                        <stop offset="50%" stopColor="#facc15" />
+                        <stop offset="50%" stopColor="transparent" />
+                      </linearGradient>
+                    </defs>
+                  )}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                  />
+                </svg>
+              );
+            })}
+
+            {/* Review Count */}
+            {typeof reviewsCount === "number" && (
+              <span className="text-xs font-montserrat text-dark-gray ml-1 mt-1">
+                ({reviewsCount})
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Price Section */}
         <div className="flex items-baseline gap-2">
