@@ -13,46 +13,67 @@ import {
 import { Category } from '../category/category.entity'; // Adjust the import path as necessary
 import { Exclude } from 'class-transformer';
 import { Review } from 'src/review/review.entity';
+import { ProductVariant } from 'src/product/product-variant.entity';
+import { Brand } from 'src/brand/brand.entity';
 
 @Entity()
 export class Product {
   @PrimaryGeneratedColumn()
   id: number;
 
+  /* ────────────────────────────────── NEW / CHANGED ───────────────────────── */
+
   @Column()
   name: string;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2 })
-  price: number;
+  @Column({ nullable: true })
+  subtitle?: string; // e.g. “– Mocha Dusk –”
 
-  @Column()
-  quantity: number;
+  @ManyToOne(() => Brand, { nullable: true })
+  brand?: Brand | null; // FK brandId
 
-  @Column({ type: 'decimal', precision: 2, scale: 1, default: 0 })
+  @Column('decimal', { precision: 12, scale: 2 })
+  price: number; // base list price
+
+  @Column('decimal', { precision: 12, scale: 2, nullable: true })
+  cost?: number;
+
+  /* moved ↓ to variant */
+  // quantity  ❌ remove – stock now lives on variants
+
+  @Column('decimal', { precision: 2, scale: 1, default: 0 })
   rating: number;
 
+  @Column({ default: 0 })
+  reviewCount: number;
+
   @Column('simple-array', { nullable: true })
-  imageUrls: string[]; // NEW: store multiple images as comma-separated strings
+  imageUrls?: string[]; // generic/hero shots (optional)
 
   @Column({ default: false })
-  isOnSale: boolean; // NEW
+  isOnSale: boolean;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
-  discountPercent: number; // NEW
+  @Column('decimal', { precision: 5, scale: 2, default: 0 })
+  discountPercent: number;
 
   @Column({ default: false })
-  isFeatured: boolean; // optional – for homepage highlighting
+  isFeatured: boolean;
 
-  @ManyToMany(() => Category, (category) => category.products, {
-    onDelete: 'SET NULL',
-    nullable: true,
-  })
+  @Column({ default: true })
+  isActive: boolean;
+
+  /* Relations */
+  @ManyToMany(() => Category, (c) => c.products, { nullable: true })
   @JoinTable()
-  categories: Category[];
+  categories?: Category[];
 
-  @OneToMany(() => Review, (review) => review.product, { nullable: true })
+  @OneToMany(() => ProductVariant, (v) => v.product, { cascade: true })
+  variants: ProductVariant[];
+
+  @OneToMany(() => Review, (r) => r.product)
   reviews: Review[];
 
+  /* Meta */
   @CreateDateColumn()
   createdAt: Date;
 

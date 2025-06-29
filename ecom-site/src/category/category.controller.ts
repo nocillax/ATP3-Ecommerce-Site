@@ -21,6 +21,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { GetCategoriesQueryDto } from './DTO/get-categories-query.dto';
+import { UpdateCategoryDto } from 'src/category/DTO/update-category.dto';
 
 @Controller('categories')
 export class CategoriesController {
@@ -62,8 +63,8 @@ export class CategoriesController {
   @Roles('admin')
   updateCategory(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: CreateCategoryDto,
-  ): Promise<{ message: string }> {
+    @Body() dto: UpdateCategoryDto, // ✅ Fix this
+  ): Promise<Category> {
     return this.categoriesService.updateCategory(id, dto);
   }
 }

@@ -2,7 +2,7 @@ import { IsInt, Min } from 'class-validator';
 
 export class AddToCartDto {
   @IsInt()
-  productId: number;
+  productVariantId: number; // ✅ important: you're working with variants now
 
   @IsInt()
   @Min(1)

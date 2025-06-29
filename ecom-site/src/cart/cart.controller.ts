@@ -23,36 +23,35 @@ import { UpdateCartItemDto } from './DTO/update-cart-item.dto';
 
 @Controller('cart')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles('customer') // Only Customers allowed
+@Roles('customer')
 export class CartController {
   constructor(private readonly cartService: CartService) {}
 
   @Get()
-  getCart(@Request() req: any) {
-    console.log(req.user);
+  getCart(@Request() req) {
     return this.cartService.getCart(req.user.userId);
   }
 
   @Post()
-  addToCart(@Request() req: any, @Body() dto: AddToCartDto) {
+  addToCart(@Request() req, @Body() dto: AddToCartDto) {
     return this.cartService.addToCart(req.user.userId, dto);
   }
 
   @Patch()
-  updateCartItem(@Request() req: any, @Body() dto: UpdateCartItemDto) {
+  updateCartItem(@Request() req, @Body() dto: UpdateCartItemDto) {
     return this.cartService.updateCartItem(req.user.userId, dto);
   }
 
   @Delete(':cartItemId')
   removeCartItem(
-    @Request() req: any,
+    @Request() req,
     @Param('cartItemId', ParseIntPipe) cartItemId: number,
   ) {
     return this.cartService.removeCartItem(req.user.userId, cartItemId);
   }
 
   @Delete()
-  clearCart(@Request() req: any) {
+  clearCart(@Request() req) {
     return this.cartService.clearCart(req.user.userId);
   }
 }

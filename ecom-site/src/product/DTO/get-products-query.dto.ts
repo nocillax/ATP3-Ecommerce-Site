@@ -65,4 +65,14 @@ export class GetProductsQueryDto {
   @Type(() => Boolean)
   @IsBoolean()
   isFeatured?: boolean;
+
+  @IsOptional()
+  @IsString()
+  color?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  skip?: number = 0;
 }

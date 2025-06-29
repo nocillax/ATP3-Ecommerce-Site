@@ -35,4 +35,7 @@ export class Category {
 
   @Column({ default: false })
   isFeatured: boolean;
+
+  @Column({ type: 'text', unique: true, nullable: true })
+  slug: string;
 }

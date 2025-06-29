@@ -2,7 +2,11 @@
 https://docs.nestjs.com/providers#services
 */
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './category.entity';
 import { In, Repository } from 'typeorm';
@@ -40,13 +44,39 @@ export class CategoriesService {
     });
   }
 
+  private slugify(text: string): string {
+    return text
+      .toLowerCase()
+      .replace(/\s+/g, '-') // Replace spaces with -
+      .replace(/[^a-z0-9\-]/g, ''); // Remove all non-alphanumeric chars except -
+  }
+
   // ===========================================================================
   //  Public API Functions
   // ===========================================================================
 
   async addCategory(dto: CreateCategoryDto): Promise<Category> {
-    const category = this.categoryRepo.create(dto);
-    return await this.categoryRepo.save(category);
+    // ✅ 1. Check if a category with this name already exists
+    const existingCategory = await this.categoryRepo.findOne({
+      where: { name: dto.name },
+    });
+
+    // ✅ 2. If it exists, throw a specific error
+    if (existingCategory) {
+      throw new ConflictException(
+        `A category with the name "${dto.name}" already exists.`,
+      );
+    }
+
+    // 3. If it doesn't exist, proceed as normal
+    const slug = this.slugify(dto.name);
+
+    const newCategory = this.categoryRepo.create({
+      ...dto,
+      slug: slug,
+    });
+
+    return this.categoryRepo.save(newCategory);
   }
 
   async getCategories(query: GetCategoriesQueryDto): Promise<Category[]> {
@@ -62,6 +92,11 @@ export class CategoriesService {
       qb.andWhere('category.isFeatured = :isFeatured', {
         isFeatured: query.isFeatured,
       });
+    }
+
+    if (query.page && query.limit) {
+      const skip = (query.page - 1) * query.limit;
+      qb.skip(skip).take(query.limit);
     }
 
     const categories = await qb.getMany();
@@ -86,15 +121,10 @@ export class CategoriesService {
     return { message: `Category with id ${id} deleted successfully` };
   }
 
-  async updateCategory(
-    id: number,
-    dto: UpdateCategoryDto,
-  ): Promise<{ message: string }> {
+  async updateCategory(id: number, dto: UpdateCategoryDto): Promise<Category> {
     const category = await this.findExistingCategoryById(id);
 
     Object.assign(category, dto);
-    await this.categoryRepo.save(category as Category);
-
-    return { message: `Category with id ${id} updated successfully` };
+    return this.categoryRepo.save(category);
   }
 }

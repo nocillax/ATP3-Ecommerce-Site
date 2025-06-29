@@ -4,9 +4,11 @@ import { ValidationPipe } from '@nestjs/common';
 import { SerializeInterceptor } from './interceptor/serialize.interceptor';
 import * as express from 'express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const config = new DocumentBuilder()
     .setTitle('E-Commerce API')
@@ -16,18 +18,27 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
+  const cookieParser = require('cookie-parser');
 
   SwaggerModule.setup('api', app, document);
 
   app.use('/payment/webhook', express.raw({ type: 'application/json' }));
 
+  app.use(cookieParser());
+
   app.use(express.json());
 
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/', // Access images via http://localhost:3000/uploads/filename.jpg
+  });
+
+  // ✅ UN-COMMENT AND USE THIS CONFIGURATION
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // 👈 STRIP unknown fields
-      forbidNonWhitelisted: true, // 👈 THROW ERROR if extra fields are found
-      transform: true, // 👈 TRANSFORM to DTO class
+      whitelist: true, // Strips properties that do not have any decorators.
+      transform: true, // Automatically transforms payloads to DTO instances.
+      // By REMOVING 'forbidNonWhitelisted' here, the global pipe will no longer
+      // throw an error for our FormData requests.
     }),
   );
 

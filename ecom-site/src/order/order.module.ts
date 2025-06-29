@@ -10,21 +10,18 @@ import Stripe from 'stripe';
 import { StripeModule } from 'src/stripe/stripe.module';
 import { ProductsModule } from 'src/product/product.module';
 import { Product } from 'src/product/product.entity';
+import { ProductVariant } from 'src/product/product-variant.entity';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([Order, OrderItem, Product]),
-        CartModule,
-        MailModule,
-        forwardRef(() => StripeModule),
-        ProductsModule
-    ],
-    controllers: [
-        OrderController],
-    providers: [
-        OrderService],
-    exports: [
-        OrderService,
-    ]
+  imports: [
+    TypeOrmModule.forFeature([Order, OrderItem, Product, ProductVariant]),
+    CartModule,
+    MailModule,
+    forwardRef(() => StripeModule),
+    ProductsModule,
+  ],
+  controllers: [OrderController],
+  providers: [OrderService],
+  exports: [OrderService],
 })
-export class OrderModule { }
+export class OrderModule {}
