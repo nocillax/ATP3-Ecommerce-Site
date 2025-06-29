@@ -82,6 +82,7 @@ export interface Product {
   reviews?: any[]; // Define a Review type later if needed
   createdAt: string;
   updatedAt: string;
+  description?: string; // Optional description field
 }
 
 export interface VariantForm {
@@ -108,4 +109,19 @@ export interface ProductForm {
   imageUrls?: string[];
   newImages?: File[];
   variants: VariantForm[];
+}
+
+export interface ReviewUser {
+  id: number;
+  name: string;
+}
+
+// Represents a single review object
+export interface Review {
+  id: number;
+  rating: number | string; // API sends a string, so we allow both
+  comment: string;
+  user: ReviewUser;
+  createdAt: string;
+  updatedAt: string;
 }

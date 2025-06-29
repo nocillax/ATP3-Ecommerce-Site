@@ -33,14 +33,20 @@ async function bootstrap() {
   });
 
   // ✅ UN-COMMENT AND USE THIS CONFIGURATION
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true, // Strips properties that do not have any decorators.
-      transform: true, // Automatically transforms payloads to DTO instances.
-      // By REMOVING 'forbidNonWhitelisted' here, the global pipe will no longer
-      // throw an error for our FormData requests.
-    }),
-  );
+  // app.useGlobalPipes(
+  //   new ValidationPipe({
+  //     whitelist: true, // Strips properties that do not have any decorators.
+  //     transform: true, // Automatically transforms payloads to DTO instances.
+  //     // By REMOVING 'forbidNonWhitelisted' here, the global pipe will no longer
+  //     // throw an error for our FormData requests.
+
+  // This is the key: it tells the pipe to not fail if top-level properties
+  // (like 'name', 'price') are missing from the request body. This allows
+  // our multipart request to pass through to the controller, where the
+  // 'data' field is then properly validated by the LOCAL pipe.
+  //skipMissingProperties: true,
+  //   }),
+  // );
 
   app.enableCors({
     origin: 'http://localhost:3001',

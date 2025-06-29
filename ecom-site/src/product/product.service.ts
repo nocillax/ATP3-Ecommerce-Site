@@ -56,14 +56,8 @@ export class ProductsService {
   async findOne(id: number): Promise<Product> {
     const product = await this.productRepo.findOne({
       where: { id },
-      relations: {
-        brand: true,
-        categories: true,
-        variants: true,
-        reviews: {
-          user: true, // Also load the user for each review
-        },
-      },
+      // Using the string array syntax for relations is very clear and reliable.
+      relations: ['brand', 'categories', 'variants', 'reviews', 'reviews.user'],
     });
     if (!product) {
       throw new NotFoundException(`Product #${id} not found`);

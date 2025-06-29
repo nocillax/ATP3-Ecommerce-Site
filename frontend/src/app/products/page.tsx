@@ -1,152 +1,88 @@
+// FILE: src/app/products/page.tsx
 "use client";
 
 import ProductCard from "@/components/ProductCard";
-import { useState } from "react";
-
-const dummyProducts = [
-  {
-    id: 1,
-    brand: "AYRAH",
-    title: "Signature Satin Hijab",
-    subtitle: "- Platinum Haze -",
-    price: 899,
-    originalPrice: 1199,
-    image:
-      "https://images.unsplash.com/photo-1594736797933-d0401ba886fe?auto=format&fit=crop&w=800&q=80",
-    category: "Hijab",
-    rating: 4.5,
-    reviewsCount: 12,
-  },
-  {
-    id: 2,
-    brand: "VELURÉ",
-    title: "Premium Silk Hijab",
-    subtitle: "- Mocha Dusk -",
-    price: 1299,
-    originalPrice: 1699,
-    image:
-      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80",
-    category: "Hijab",
-    rating: 4,
-    reviewsCount: 10,
-  },
-  {
-    id: 3,
-    brand: "LUMÉ",
-    title: "Cotton Essentials",
-    subtitle: "- Ivory Cream -",
-    price: 599,
-    image:
-      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80",
-    category: "Basicwear",
-    rating: 4.2,
-    reviewsCount: 20,
-  },
-  {
-    id: 4,
-    brand: "AYRAH",
-    title: "Signature Satin Hijab",
-    subtitle: "- Platinum Haze -",
-    price: 899,
-    originalPrice: 1199,
-    image:
-      "https://images.unsplash.com/photo-1594736797933-d0401ba886fe?auto=format&fit=crop&w=800&q=80",
-    category: "Hijab",
-    rating: 4.8,
-    reviewsCount: 27,
-  },
-  {
-    id: 5,
-    brand: "VELURÉ",
-    title: "Premium Silk Hijab",
-    subtitle: "- Mocha Dusk -",
-    price: 1299,
-    originalPrice: 1699,
-    image:
-      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80",
-    category: "Hijab",
-  },
-  {
-    id: 6,
-    brand: "LUMÉ",
-    title: "Cotton Essentials",
-    subtitle: "- Ivory Cream -",
-    price: 599,
-    image:
-      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80",
-    category: "Basicwear",
-  },
-  {
-    id: 7,
-    brand: "AYRAH",
-    title: "Signature Satin Hijab",
-    subtitle: "- Platinum Haze -",
-    price: 899,
-    originalPrice: 1199,
-    image:
-      "https://images.unsplash.com/photo-1594736797933-d0401ba886fe?auto=format&fit=crop&w=800&q=80",
-    category: "Hijab",
-  },
-  {
-    id: 8,
-    brand: "VELURÉ",
-    title: "Premium Silk Hijab",
-    subtitle: "- Mocha Dusk -",
-    price: 1299,
-    originalPrice: 1699,
-    image:
-      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80",
-    category: "Hijab",
-  },
-  {
-    id: 9,
-    brand: "LUMÉ",
-    title: "Cotton Essentials",
-    subtitle: "- Ivory Cream -",
-    price: 599,
-    image:
-      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80",
-    category: "Basicwear",
-  },
-];
+import { useState, useEffect } from "react";
+import api from "@/lib/api";
+import { Product, Category } from "@/types"; // Assuming you have these in types/index.ts
 
 export default function ProductsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // State for all filters and sorting
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
-  const [sort, setSort] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortDirection, setSortDirection] = useState("desc");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 8;
+  const productsPerPage = 18; // Increased for better layout
 
-  const categories = ["All", "Hijab", "Basicwear"];
-  const sortOptions = [
-    { label: "A–Z", value: "az" },
-    { label: "Z–A", value: "za" },
-    { label: "Price: Low to High", value: "low-high" },
-    { label: "Price: High to Low", value: "high-low" },
-  ];
+  // Fetch initial data for products and featured categories
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setIsLoading(true);
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          api.get("/products", { params: { limit: 1000 } }), // Get all products
+          api.get("/categories", { params: { isFeatured: true } }), // Get only featured categories
+        ]);
+        setProducts(productsRes.data.data);
+        setCategories(categoriesRes.data);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchInitialData();
+  }, []);
 
-  // 🔍 Filter + sort logic
-  let filtered = dummyProducts
-    .filter((p) =>
-      selectedCategory === "All" ? true : p.category === selectedCategory
+  const categoryOptions = ["All", ...categories.map((c) => c.name)];
+
+  // Client-side filtering and sorting logic
+  let filteredProducts = products
+    .filter(
+      (p) =>
+        selectedCategory === "All" ||
+        p.categories.some((c) => c.name === selectedCategory)
     )
     .filter((p) =>
-      `${p.title} ${p.brand}`.toLowerCase().includes(searchTerm.toLowerCase())
+      `${p.name} ${p.brand.name}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
     )
     .filter((p) => (minPrice ? p.price >= parseInt(minPrice) : true))
     .filter((p) => (maxPrice ? p.price <= parseInt(maxPrice) : true));
 
-  if (sort === "az") filtered.sort((a, b) => a.title.localeCompare(b.title));
-  if (sort === "za") filtered.sort((a, b) => b.title.localeCompare(a.title));
-  if (sort === "low-high") filtered.sort((a, b) => a.price - b.price);
-  if (sort === "high-low") filtered.sort((a, b) => b.price - a.price);
+  // Sorting logic
+  filteredProducts.sort((a, b) => {
+    let result = 0;
+    switch (sortBy) {
+      case "name":
+        result = a.name.localeCompare(b.name);
+        break;
+      case "price":
+        result = a.price - b.price;
+        break;
+      case "rating":
+        result = (b.rating ?? 0) - (a.rating ?? 0);
+        break;
+      case "createdAt":
+        result =
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        break;
+    }
+    return sortDirection === "asc" ? result : -result;
+  });
 
   // 📄 Pagination
   const start = (currentPage - 1) * productsPerPage;
-  const paginated = filtered.slice(start, start + productsPerPage);
-  const totalPages = Math.ceil(filtered.length / productsPerPage);
+  const paginated = filteredProducts.slice(start, start + productsPerPage);
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
   return (
     <section className="max-w-7xl mx-auto px-4 py-10">
@@ -154,63 +90,42 @@ export default function ProductsPage() {
         All Products
       </h2>
 
-      {/* Top Filter Controls */}
-      <div className="mb-6 flex flex-wrap justify-between gap-4 text-sm">
-        {/* Search */}
+      {/* Filter controls */}
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
         <input
           type="text"
-          placeholder="Search"
+          placeholder="Search product or brand..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-96 px-5 py-2 border border-dark-gray text-dark-gray rounded-full placeholder:text-dark-gray/50 bg-mint-light focus:outline-none"
+          className="md:col-span-2 w-full px-5 py-2 border border-dark-gray rounded-full bg-mint-light focus:outline-none"
         />
-
-        <div className="flex gap-3">
-          {/* Sort */}
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="px-3 py-1 border border-dark-gray text-dark-gray rounded-sm bg-mint-light focus:outline-none"
-          >
-            <option value="">Sort</option>
-            {sortOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-
-          {/* Price Range */}
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              placeholder="Min"
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-              className="w-16 px-2 py-2 border border-dark-gray text-dark-gray rounded-sm text-sm bg-mint-light focus:outline-none"
-            />
-            <span className="text-dark-gray">–</span>
-            <input
-              type="number"
-              placeholder="Max"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-              className="w-16 px-2 py-2 border border-dark-gray text-dark-gray rounded-sm text-sm bg-mint-light focus:outline-none"
-            />
-          </div>
-        </div>
+        <select
+          value={sortBy + "-" + sortDirection}
+          onChange={(e) => {
+            const [sort, direction] = e.target.value.split("-");
+            setSortBy(sort);
+            setSortDirection(direction);
+          }}
+          className="px-3 py-1 border border-dark-gray text-dark-gray rounded-sm bg-mint-light focus:outline-none"
+        >
+          <option value="createdAt-desc">Newest</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="rating-desc">Rating: High to Low</option>
+          <option value="name-asc">Name: A-Z</option>
+          <option value="name-desc">Name: Z-A</option>
+        </select>
       </div>
 
-      {/* Category Filter */}
       <div className="mb-6 flex gap-3 flex-wrap">
-        {categories.map((cat) => (
+        {categoryOptions.map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-1.5 rounded-full border text-sm font-reem-kufi font-bold transition ${
+            className={`px-4 py-1.5 rounded-full border text-sm font-bold transition ${
               selectedCategory === cat
-                ? "bg-dark-gray text-mint-light border-dark-gray"
-                : "border-dark-gray text-dark-gray hover:bg-dark-gray hover:text-mint-light"
+                ? "bg-dark-gray text-mint-light"
+                : "border-dark-gray text-dark-gray"
             }`}
           >
             {cat}
@@ -220,9 +135,24 @@ export default function ProductsPage() {
 
       {/* Product Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-3 gap-y-8">
-        {paginated.map((product) => (
-          <ProductCard key={product.id} {...product} />
-        ))}
+        {isLoading ? (
+          <p>Loading products...</p>
+        ) : (
+          paginated.map((product) => (
+            <ProductCard
+              key={product.id}
+              id={product.id}
+              name={product.name}
+              brand={product.brand.name}
+              price={product.price}
+              imageUrls={product.imageUrls}
+              isOnSale={product.isOnSale}
+              discountPercent={product.discountPercent}
+              rating={product.rating}
+              reviewCount={product.reviewCount}
+            />
+          ))
+        )}
       </div>
 
       {/* Pagination */}

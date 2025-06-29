@@ -29,8 +29,11 @@ export class Product {
   @Column({ nullable: true })
   subtitle?: string; // e.g. “– Mocha Dusk –”
 
-  @ManyToOne(() => Brand, { nullable: true })
-  brand?: Brand | null; // FK brandId
+  @ManyToOne(() => Brand, { nullable: true, eager: true })
+  brand?: Brand | null;
+
+  @Column({ type: 'text', nullable: true }) // ✅ ADD THIS
+  description: string;
 
   @Column('decimal', { precision: 12, scale: 2 })
   price: number; // base list price
@@ -63,7 +66,10 @@ export class Product {
   isActive: boolean;
 
   /* Relations */
-  @ManyToMany(() => Category, (c) => c.products, { nullable: true })
+  @ManyToMany(() => Category, (c) => c.products, {
+    nullable: true,
+    eager: true,
+  })
   @JoinTable()
   categories?: Category[];
 
