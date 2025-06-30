@@ -8,8 +8,11 @@ import { useCartStore } from "@/store/cartStore";
 import { CartItem } from "@/types";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function CartPage() {
+  const { user, isloading } = useRequireAuth();
+
   // 1. Get the cart state and actions from our Zustand store
   const { cart, itemCount, fetchCart, updateCartItem, removeCartItem } =
     useCartStore();
@@ -38,7 +41,7 @@ export default function CartPage() {
   const handleRemoveItem = async (itemId: number) => {
     if (window.confirm("Are you sure you want to remove this item?")) {
       try {
-        // ✅ UNCOMMENT THIS LINE
+        //  UNCOMMENT THIS LINE
         await removeCartItem(itemId);
         toast.success("Item removed from cart");
       } catch (error) {
@@ -79,7 +82,7 @@ export default function CartPage() {
       return nameCompare;
     }
 
-    // ✅ If names are the same, use the unique cart item ID as a tie-breaker
+    //  If names are the same, use the unique cart item ID as a tie-breaker
     return a.id - b.id;
   });
 
@@ -93,7 +96,7 @@ export default function CartPage() {
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-6">
           {sortedCartItems.map((item) => {
-            // ✅ FIX: Prioritize variant image, but fall back to main product image
+            //  FIX: Prioritize variant image, but fall back to main product image
             const imageUrl =
               item.productVariant.imageUrls?.[0] ||
               item.productVariant.product.imageUrls[0] ||
@@ -117,7 +120,7 @@ export default function CartPage() {
 
                 <div className="flex-1">
                   <Link href={`/products/${item.productVariant.product.id}`}>
-                    {/* ✅ R1: Displaying Brand, Name, and Variant Color */}
+                    {/*  R1: Displaying Brand, Name, and Variant Color */}
                     <h3 className="text-lg font-reem-kufi font-bold text-dark-gray hover:text-accent-red transition-colors">
                       {item.productVariant.product.brand.name}
                     </h3>
@@ -147,7 +150,7 @@ export default function CartPage() {
                         <Plus size={16} />
                       </button>
                     </div>
-                    {/* ✅ R2: Displaying the final line price */}
+                    {/*  R2: Displaying the final line price */}
                     <span className="text-sm font-montserrat text-dark-gray font-semibold">
                       $ {Number(item.price).toFixed(2)}
                     </span>
@@ -176,7 +179,7 @@ export default function CartPage() {
             <span>$ {Number(subtotal).toFixed(2)}</span>
           </div>
 
-          {/* ✅ ADD THIS NEW SECTION */}
+          {/*  ADD THIS NEW SECTION */}
           {totalSavings > 0 && (
             <div className="flex justify-between text-sm font-montserrat font-medium text-green-600">
               <span>Discount</span>

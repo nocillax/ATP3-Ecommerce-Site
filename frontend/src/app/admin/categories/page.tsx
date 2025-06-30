@@ -1,6 +1,3 @@
-// FILE: src/app/admin/categories/page.tsx
-// ACTION: Replace the entire file with this code.
-
 "use client";
 
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -34,12 +31,10 @@ export default function AdminCategoriesPage() {
 
   const perPage = 10;
 
-  // 3. useEffect hook to fetch categories from the API
   useEffect(() => {
     const fetchCategories = async () => {
       setIsLoading(true);
       try {
-        // Assuming your categories endpoint returns a simple array
         const response = await api.get("/categories");
         setCategories(response.data);
       } catch (error) {
@@ -73,16 +68,13 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  // We will wire this up to the backend next
   const handleSubmit = async (data: CategoryForm) => {
     if (editData) {
       // --- EDIT MODE ---
       try {
-        // Call the PATCH endpoint to update the category
         const response = await api.patch(`/categories/${editData.id}`, data);
         const updatedCategory = response.data;
 
-        // Update the state with the confirmed data from the server
         setCategories((prev) =>
           prev.map((c) => (c.id === updatedCategory.id ? updatedCategory : c))
         );
@@ -93,11 +85,9 @@ export default function AdminCategoriesPage() {
     } else {
       // --- CREATE MODE ---
       try {
-        // Call the POST endpoint to create the category
         const response = await api.post("/categories", data);
         const newCategory = response.data;
 
-        // Add the new category from the server (with its real ID and slug) to our state
         setCategories((prev) => [...prev, newCategory]);
       } catch (error) {
         console.error("Failed to create category:", error);
@@ -114,7 +104,6 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  // 1. Filtering Logic
   let filtered = categories.filter((cat) => {
     const matchSearch = cat.name.toLowerCase().includes(search.toLowerCase());
     // ✅ Add matching for the new status filter
@@ -123,8 +112,7 @@ export default function AdminCategoriesPage() {
     return matchSearch && matchStatus;
   });
 
-  // 2. Sorting Logic
-  let sortedCategories = [...filtered]; // Create a mutable copy
+  let sortedCategories = [...filtered];
   sortedCategories.sort((a, b) => {
     let result = 0;
     switch (sortBy) {
@@ -132,7 +120,6 @@ export default function AdminCategoriesPage() {
         result = a.name.localeCompare(b.name);
         break;
       case "createdAt":
-        // Assuming createdAt is in the API response
         result =
           new Date(a.createdAt ?? 0).getTime() -
           new Date(b.createdAt ?? 0).getTime();
@@ -143,12 +130,10 @@ export default function AdminCategoriesPage() {
     return result;
   });
 
-  // 3. Handle Direction
   if (sortDirection === "desc") {
     sortedCategories.reverse();
   }
 
-  // 4. Pagination
   const totalPages = Math.ceil(sortedCategories.length / perPage);
   const paginated = sortedCategories.slice(
     (currentPage - 1) * perPage,
@@ -179,7 +164,7 @@ export default function AdminCategoriesPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="w-[200px]"
         />
-        {/* ✅ ADD Status Filter */}
+        {/* Status Filter */}
         <NotchedSelect
           label="Status"
           className="w-[140px]"
@@ -191,7 +176,7 @@ export default function AdminCategoriesPage() {
             { value: "Not Featured", label: "Not Featured" },
           ]}
         />
-        {/* ✅ ADD New Sort Controls */}
+        {/* New Sort Controls */}
         <NotchedSelect
           label="Sort By"
           className="w-[130px]"

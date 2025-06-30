@@ -12,13 +12,13 @@ interface Option {
 }
 
 interface MultiSelectProps {
-  label: string; // ✅ Added label prop for the notch
+  label: string; //  Added label prop for the notch
   options: Option[];
   selectedValues: string[];
   onChange: (selected: string[]) => void;
   placeholder?: string;
   disabled?: boolean;
-  className?: string; // ✅ Added className for custom styling
+  className?: string; //  Added className for custom styling
 }
 
 export default function MultiSelect({
@@ -65,7 +65,7 @@ export default function MultiSelect({
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-      {/* ✅ This is the new fieldset structure for the notched border */}
+      {/*  This is the new fieldset structure for the notched border */}
       <fieldset className="rounded border border-brown/50 px-2">
         <legend className="px-1 text-sm text-dark-gray/80">{label}</legend>
         <div

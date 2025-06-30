@@ -9,7 +9,7 @@ interface OrderDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   order: Order | null;
-  // ✅ Add a prop to handle status changes
+  //  Add a prop to handle status changes
   onStatusChange: (orderId: number, newStatus: string) => void;
 }
 
@@ -90,7 +90,7 @@ export default function OrderDetailsModal({
         <h3 className="font-bold text-sm mb-2">Order Items</h3>
         <div className="border rounded-md overflow-hidden">
           <table className="w-full text-sm">
-            {/* ✅ Updated Table Header */}
+            {/*  Updated Table Header */}
             <thead className="bg-gray-50 text-xs uppercase font-semibold">
               <tr>
                 <th className="px-4 py-2 text-left" colSpan={2}>
@@ -120,7 +120,7 @@ export default function OrderDetailsModal({
                     </div>
                   </td>
 
-                  {/* ✅ New, detailed price columns */}
+                  {/*  New, detailed price columns */}
                   <td className="px-4 py-2 text-right">
                     BDT {item.originalPrice.toFixed(2)}
                   </td>

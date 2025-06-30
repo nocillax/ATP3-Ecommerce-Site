@@ -45,7 +45,7 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, []); // The empty array [] means this effect runs once when the component mounts
 
-  // ✅ NEW: Handler for changing order status
+  //  NEW: Handler for changing order status
   const handleStatusChange = async (orderId: number, newStatus: string) => {
     try {
       await api.patch(`/orders/${orderId}/status`, {
@@ -53,7 +53,7 @@ export default function AdminOrdersPage() {
       });
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
-          // ✅ Add 'as Order['status']' to tell TypeScript this is a valid status
+          //  Add 'as Order['status']' to tell TypeScript this is a valid status
           order.databaseId === orderId
             ? { ...order, status: newStatus as Order["status"] }
             : order
@@ -66,7 +66,7 @@ export default function AdminOrdersPage() {
     }
   };
 
-  // ✅ NEW: Handler for deleting an order
+  //  NEW: Handler for deleting an order
   const handleDeleteOrder = async (orderId: number) => {
     if (
       !window.confirm("Are you sure you want to permanently delete this order?")
@@ -109,7 +109,7 @@ export default function AdminOrdersPage() {
               <th className="px-4 py-3">Date</th>
               <th className="px-4 py-3">Total</th>
               <th className="px-4 py-3">Status</th>{" "}
-              {/* ✅ Was "Change Status", now just "Status" */}
+              {/*  Was "Change Status", now just "Status" */}
               <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
@@ -130,7 +130,7 @@ export default function AdminOrdersPage() {
                     $ {Number(order.total).toFixed(2)}
                   </td>
                   <td className="px-4 py-3">
-                    {/* ✅ Reverted to the colored status badge */}
+                    {/*  Reverted to the colored status badge */}
                     <span
                       className={`rounded px-2 py-1 text-xs font-bold ${
                         order.status === "Pending"
@@ -188,7 +188,7 @@ export default function AdminOrdersPage() {
         isOpen={!!selectedOrder}
         onClose={() => setSelectedOrder(null)}
         order={selectedOrder}
-        onStatusChange={handleStatusChange} // ✅ Pass the handler function
+        onStatusChange={handleStatusChange} //  Pass the handler function
       />
     </AdminLayout>
   );

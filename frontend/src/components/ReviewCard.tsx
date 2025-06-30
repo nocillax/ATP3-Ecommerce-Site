@@ -27,7 +27,7 @@ export default function ReviewCard({ review }: { review: Review }) {
 
   return (
     <div className="border-b border-light-green py-4">
-      {/* ✅ This container now uses flexbox to separate items */}
+      {/*  This container now uses flexbox to separate items */}
       <div className="flex items-center justify-between mb-2">
         {/* This div groups the stars and the name on the left */}
         <div className="flex items-center">
@@ -41,7 +41,7 @@ export default function ReviewCard({ review }: { review: Review }) {
           </p>
         </div>
 
-        {/* ✅ This is the new date, which will be pushed to the right */}
+        {/*  This is the new date, which will be pushed to the right */}
         <p className="text-xs text-dark-gray/60">{reviewDate}</p>
       </div>
 

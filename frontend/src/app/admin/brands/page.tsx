@@ -68,7 +68,6 @@ export default function AdminBrandsPage() {
     formData.append("subtitle", data.subtitle);
     formData.append("description", data.description);
 
-    // ✅ THE FIX: Only append imageUrl if it's not an empty string
     if (data.imageUrl) {
       formData.append("imageUrl", data.imageUrl);
     }
@@ -108,7 +107,6 @@ export default function AdminBrandsPage() {
     return matchSearch;
   });
 
-  // ✅ ADD THIS ENTIRE SORTING BLOCK
   let sortedBrands = [...filtered];
   sortedBrands.sort((a, b) => {
     let result = 0;
@@ -127,8 +125,7 @@ export default function AdminBrandsPage() {
     sortedBrands.reverse();
   }
 
-  // Ensure you use 'sortedBrands' for pagination
-  // 4. Pagination
+  // Pagination
   const totalPages = Math.ceil(sortedBrands.length / perPage);
   const paginated = sortedBrands.slice(
     (currentPage - 1) * perPage,
@@ -159,14 +156,7 @@ export default function AdminBrandsPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="w-[200px]"
         />
-        {/* ✅ ADD THESE TWO DROPDOWNS */}
-        {/* <NotchedSelect
-          label="Sort By"
-          className="w-[130px]"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          options={[{ value: "name", label: "Name" }]}
-        /> */}
+
         <NotchedSelect
           label="Order"
           className="w-[130px]"

@@ -37,7 +37,7 @@ export default function ProductCard({
   return (
     <Link href={`/products/${id}`} className="block group">
       <div className="w-[186px] bg-mint-light rounded-md border border-light-green shadow-category overflow-hidden hover:shadow-lg transition-shadow relative flex flex-col h-full">
-        {/* ✅ NEW: Discount Badge */}
+        {/*  NEW: Discount Badge */}
         {isOnSale && (discountPercent ?? 0) > 0 && (
           <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
             {discountPercent}% Off
@@ -57,11 +57,11 @@ export default function ProductCard({
 
         <div className="p-3 flex flex-col flex-grow">
           <div className="flex-grow">
-            {/* ✅ Brand name is now uppercase with a different font */}
+            {/*  Brand name is now uppercase with a different font */}
             <h3 className="font-crimson text-xs font-bold text-dark-gray/60 mb-1 uppercase tracking-wider">
               {brand}
             </h3>
-            {/* ✅ Title is now limited to 2 lines with an ellipsis (...) if it's too long */}
+            {/*  Title is now limited to 2 lines with an ellipsis (...) if it's too long */}
             <p
               title={name}
               className="font-quicksand text-base font-semibold text-dark-gray leading-tight line-clamp-2 h-[48px]"
@@ -123,7 +123,7 @@ export default function ProductCard({
                 {price}
               </span>
             </div>
-            {/* ✅ FIX: Only show original price if it exists (i.e., on sale) */}
+            {/*  FIX: Only show original price if it exists (i.e., on sale) */}
             {originalPrice && (
               <span className="text-sm text-dark-gray line-through align-sub font-crimson">
                 {originalPrice}

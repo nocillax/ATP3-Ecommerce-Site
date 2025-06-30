@@ -8,7 +8,7 @@ import { Product } from "@/types";
 
 export default function BestSellers() {
   const [products, setProducts] = useState<Product[]>([]);
-  // ✅ Add a ref to access the scrollable container
+  //  Add a ref to access the scrollable container
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function BestSellers() {
     fetchBestSellers();
   }, []);
 
-  // ✅ Add handlers to scroll the container
+  //  Add handlers to scroll the container
   const scroll = (direction: "left" | "right") => {
     const offset = direction === "left" ? -320 : 320; // Adjust scroll distance if needed
     scrollRef.current?.scrollBy({ left: offset, behavior: "smooth" });
@@ -37,7 +37,7 @@ export default function BestSellers() {
         Our Best Sellers
       </h2>
 
-      {/* ✅ The container for the carousel and arrows */}
+      {/*  The container for the carousel and arrows */}
       <div className="relative">
         {/* Left Arrow */}
         <button

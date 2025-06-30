@@ -96,7 +96,7 @@ export default function AdminHeroImagesPage() {
 
   return (
     <AdminLayout>
-      {/* ✅ Using the consistent page header style */}
+      {/*  Using the consistent page header style */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-playfair font-bold text-dark-gray">
           Manage Hero Banners
@@ -109,7 +109,7 @@ export default function AdminHeroImagesPage() {
         </button>
       </div>
 
-      {/* ✅ Added filter and sort controls */}
+      {/*  Added filter and sort controls */}
       <div className="mb-4 flex flex-wrap items-center gap-3 text-sm">
         <NotchedInput
           label="Search"
@@ -141,7 +141,7 @@ export default function AdminHeroImagesPage() {
         />
       </div>
 
-      {/* ✅ Copied the main table styling */}
+      {/*  Copied the main table styling */}
       <div className="overflow-x-auto rounded border border-light-green">
         <table className="min-w-full text-sm text-left font-montserrat text-dark-gray">
           <thead className="bg-light-green text-xs font-bold uppercase">
@@ -165,7 +165,7 @@ export default function AdminHeroImagesPage() {
               paginated.map((image) => (
                 <tr key={image.id} className="border-t border-light-green">
                   <td className="px-4 py-3">
-                    {/* ✅ Restored your preferred image preview size */}
+                    {/*  Restored your preferred image preview size */}
                     <img
                       src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${image.imageUrl}`}
                       alt={image.title}
@@ -176,7 +176,7 @@ export default function AdminHeroImagesPage() {
                   <td className="px-4 py-3">{image.linkUrl}</td>
                   <td className="px-4 py-3">{image.displayOrder}</td>
                   <td className="px-4 py-3">
-                    {/* ✅ Added a styled badge for the 'Status' column */}
+                    {/*  Added a styled badge for the 'Status' column */}
                     <span
                       className={`rounded px-2 py-1 text-xs font-bold ${
                         image.isActive

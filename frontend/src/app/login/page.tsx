@@ -41,7 +41,7 @@ export default function LoginPage() {
       // 1. Call the login API endpoint
       await api.post("/auth/login", { email, password });
 
-      // 2. ✅ THIS IS THE FIX: After successful login, fetch the user's
+      // 2.  THIS IS THE FIX: After successful login, fetch the user's
       //    profile to update the global state.
       const user = await fetchUser();
 
@@ -54,8 +54,9 @@ export default function LoginPage() {
         router.push("/");
       }
     } catch (error) {
-      console.error("Login failed:. Please check your credentials.");
-      alert("Login failed. Check console for details.");
+      setErrors({
+        email: "Invalid email or password.",
+      });
     }
   };
 
@@ -96,7 +97,7 @@ export default function LoginPage() {
             required
           />
 
-          {/* ✅ Validation Summary Block */}
+          {/*  Validation Summary Block */}
           {Object.keys(errors).length > 0 && (
             <div className="p-3 border border-red-300 bg-red-50 rounded-md text-sm">
               <ul className="list-disc list-inside text-red-600">

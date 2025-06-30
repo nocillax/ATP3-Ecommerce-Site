@@ -47,7 +47,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
   },
 
-  // ✅ NEW: Action to update item quantity
+  //  NEW: Action to update item quantity
   updateCartItem: async (cartItemId, quantity) => {
     try {
       // Your backend expects a PATCH request to /cart with this body
@@ -59,7 +59,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
   },
 
-  // ✅ NEW: Action to remove an item
+  //  NEW: Action to remove an item
   removeCartItem: async (cartItemId) => {
     try {
       // Your backend expects a DELETE request to /cart/:cartItemId

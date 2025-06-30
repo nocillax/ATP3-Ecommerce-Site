@@ -14,7 +14,7 @@ export default function FeaturedProducts() {
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
       try {
-        // ✅ The main change is the API call inside useEffect
+        //  The main change is the API call inside useEffect
         const response = await api.get("/products", {
           params: {
             isFeatured: true, // Fetch products where isFeatured is true
@@ -41,7 +41,7 @@ export default function FeaturedProducts() {
 
   return (
     <section className="w-full max-w-7xl mx-auto px-4 py-10 mt-8">
-      {/* ✅ The heading is updated */}
+      {/*  The heading is updated */}
       <h2 className="text-2xl font-playfair font-bold text-dark-gray mb-6 text-center">
         Featured Products
       </h2>

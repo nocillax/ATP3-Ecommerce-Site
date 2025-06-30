@@ -130,7 +130,7 @@ export default function AdminProductList() {
   const handleSave = async (formData: ProductForm) => {
     if (modalMode === "create") {
       // =================================================================
-      // ✅ LOGIC FOR CREATE - Restored to the version that worked
+      //  LOGIC FOR CREATE - Restored to the version that worked
       // =================================================================
       try {
         const dataToUpload = new FormData();
@@ -178,7 +178,7 @@ export default function AdminProductList() {
       }
     } else if (modalMode === "edit" && selectedProduct) {
       // =================================================================
-      // ✅ LOGIC FOR EDIT - Self-contained and correct
+      //  LOGIC FOR EDIT - Self-contained and correct
       // =================================================================
       try {
         const dataToUpload = new FormData();
@@ -365,7 +365,7 @@ export default function AdminProductList() {
           onChange={(e) => setStatus(e.target.value)}
         />
 
-        {/* ✅ NEW "SORT BY" DROPDOWN */}
+        {/*  NEW "SORT BY" DROPDOWN */}
         <NotchedSelect
           label="Sort By"
           className="w-[150px]"
@@ -380,7 +380,7 @@ export default function AdminProductList() {
           ]}
         />
 
-        {/* ✅ NEW "DIRECTION" DROPDOWN */}
+        {/*  NEW "DIRECTION" DROPDOWN */}
         <NotchedSelect
           label="Order"
           className="w-[150px]"

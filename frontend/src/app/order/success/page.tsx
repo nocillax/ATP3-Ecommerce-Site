@@ -1,9 +1,12 @@
 "use client";
 
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { CheckCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function OrderSuccessPage() {
+  const { user, isloading } = useRequireAuth();
+
   return (
     <section className="max-w-xl mx-auto px-4 py-20 text-center">
       <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6" />

@@ -68,9 +68,9 @@ export default function HeroImageModal({
   if (!isOpen) return null;
 
   return (
-    // ✅ Changed to CSS Grid for consistent centering and scrolling
+    //  Changed to CSS Grid for consistent centering and scrolling
     <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/40 p-4">
-      {/* ✅ Matched styling, but kept a smaller max-width for this simpler form */}
+      {/*  Matched styling, but kept a smaller max-width for this simpler form */}
       <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-lg">
         <button
           className="absolute right-4 top-4 rounded p-1 hover:bg-gray-200"
@@ -79,12 +79,12 @@ export default function HeroImageModal({
           <X className="h-5 w-5" />
         </button>
 
-        {/* ✅ Matched title style */}
+        {/*  Matched title style */}
         <h2 className="mb-4 text-lg font-bold text-dark-gray">
           {initialData ? "Edit Hero Image" : "Add New Hero Image"}
         </h2>
 
-        {/* ✅ Form now uses grid layout for consistent spacing */}
+        {/*  Form now uses grid layout for consistent spacing */}
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
           <NotchedInput
             name="title"

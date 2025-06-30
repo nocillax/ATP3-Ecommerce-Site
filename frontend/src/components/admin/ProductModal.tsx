@@ -178,7 +178,7 @@ export default function ProductModal({
       ...form,
       variants: [
         ...form.variants,
-        // ✅ FIX #3 & #4: Default values must be strings to match the state type
+        //  FIX #3 & #4: Default values must be strings to match the state type
         { color: "", stock: "0", priceOverride: "", newImages: [] },
       ],
     });
@@ -242,7 +242,7 @@ export default function ProductModal({
 
             setErrors([]);
 
-            // ✅ FINAL FIX: TRANSLATION (OUT): Strings from Form -> Numbers for API
+            //  FINAL FIX: TRANSLATION (OUT): Strings from Form -> Numbers for API
             const dataToSend: ProductForm = {
               name: form.name,
               subtitle: form.subtitle,
@@ -440,7 +440,7 @@ export default function ProductModal({
                       alt="Existing product"
                       className="h-16 w-16 rounded object-cover"
                     />
-                    {/* ✅ This button only appears when not in 'view' mode */}
+                    {/*  This button only appears when not in 'view' mode */}
                     {!readOnly && (
                       <button
                         type="button"
@@ -510,7 +510,7 @@ export default function ProductModal({
                   type="number"
                   placeholder="Stock"
                   value={v.stock}
-                  // ✅ FIX #2: Assign the string value directly to the string state
+                  //  FIX #2: Assign the string value directly to the string state
                   onChange={(e) =>
                     handleVariantChange(idx, "stock", e.target.value)
                   }

@@ -14,7 +14,7 @@ export default function RegisterPage() {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    phone: "", // ✅ Add phone to the form state
+    phone: "", //  Add phone to the form state
     password: "",
     confirmPassword: "",
   });
@@ -27,7 +27,7 @@ export default function RegisterPage() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // ✅ Validation logic function
+  //  Validation logic function
   const validateForm = () => {
     const newErrors: Partial<typeof form> = {};
     if (!form.name) newErrors.name = "Full name is required.";
@@ -47,10 +47,10 @@ export default function RegisterPage() {
     return newErrors;
   };
 
-  // ✅ The complete registration logic
+  //  The complete registration logic
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // ✅ Call validate() before submitting
+    //  Call validate() before submitting
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -124,7 +124,7 @@ export default function RegisterPage() {
             onChange={handleChange}
             required
           />
-          {/* ✅ Add the Phone Number input field */}
+          {/*  Add the Phone Number input field */}
           <NotchedInput
             label="Phone Number"
             type="tel"
@@ -149,7 +149,7 @@ export default function RegisterPage() {
             required
           />
 
-          {/* ✅ Validation Summary Block */}
+          {/*  Validation Summary Block */}
           {Object.keys(errors).length > 0 && (
             <div className="p-3 border border-red-300 bg-red-50 rounded-md text-sm">
               <ul className="list-disc list-inside text-red-600">

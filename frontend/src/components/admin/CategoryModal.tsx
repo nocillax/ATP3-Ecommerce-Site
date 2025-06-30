@@ -98,7 +98,7 @@ export default function CategoryModal({
           {initialData ? "Edit Category" : "Add New Category"}
         </h2>
 
-        {/* ✅ Validation Summary Block */}
+        {/*  Validation Summary Block */}
         {Object.keys(errors).length > 0 && (
           <div className="p-3 border border-red-300 bg-red-50 rounded-md text-sm mb-4">
             <ul className="list-disc list-inside text-red-600">

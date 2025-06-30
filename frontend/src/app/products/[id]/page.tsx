@@ -37,7 +37,7 @@ export default function ProductDetailsPage() {
   const { user } = useAuth();
 
   const handleAddToCart = async () => {
-    // ✅ FIX: Add a check to ensure product and variant are loaded
+    //  FIX: Add a check to ensure product and variant are loaded
 
     if (!user) {
       toast.error("Please log in to add items to your cart.");
@@ -54,7 +54,7 @@ export default function ProductDetailsPage() {
       const addToCart = useCartStore.getState().addToCart;
       await addToCart(selectedVariant.id, quantity);
 
-      // ✅ Use the success toast instead of alert()
+      //  Use the success toast instead of alert()
       toast.success(
         `${product.name} (${selectedVariant.color}) added to cart!`
       );
@@ -77,7 +77,7 @@ export default function ProductDetailsPage() {
       return;
     }
 
-    // ✅ NEW LOGIC
+    //  NEW LOGIC
     const proceed = window.confirm(
       "This will clear your current cart and proceed to checkout with only this item. Are you sure?"
     );
@@ -94,7 +94,7 @@ export default function ProductDetailsPage() {
     }
   };
 
-  // ✅ NEW: Handler for submitting the review
+  //  NEW: Handler for submitting the review
   const handleReviewSubmit = async (data: {
     rating: number;
     comment: string;
@@ -235,7 +235,7 @@ export default function ProductDetailsPage() {
     }
   }, [selectedVariant]);
 
-  // ✅ Re-introduce this to create one long list of all unique images.
+  //  Re-introduce this to create one long list of all unique images.
   const allThumbnails = useMemo(() => {
     if (!product) return [];
     const mainImages = product.imageUrls ?? [];
@@ -248,7 +248,7 @@ export default function ProductDetailsPage() {
   if (!product)
     return <div className="text-center py-20">Product not found.</div>;
 
-  // ✅ NEW: Dynamically determine which thumbnails to show
+  //  NEW: Dynamically determine which thumbnails to show
   // If a variant is selected and has images, show them. Otherwise, show the main product images.
   const thumbnailsToShow = selectedVariant?.imageUrls?.length
     ? selectedVariant.imageUrls
@@ -276,7 +276,7 @@ export default function ProductDetailsPage() {
               className="w-full h-full object-cover"
             />
           </div>
-          {/* ✅ The gallery now maps over the complete 'allThumbnails' list. */}
+          {/*  The gallery now maps over the complete 'allThumbnails' list. */}
           <div className="flex gap-2">
             {allThumbnails.map((img, i) => (
               <button
@@ -299,7 +299,7 @@ export default function ProductDetailsPage() {
         {/* Info Column */}
         <div className="flex flex-col">
           <div>
-            {/* ✅ Restored your original fonts and layout */}
+            {/*  Restored your original fonts and layout */}
             <h2 className="text-2xl font-reem-kufi font-extrabold text-dark-gray mb-2">
               {product.brand.name}
             </h2>
@@ -389,7 +389,7 @@ export default function ProductDetailsPage() {
             </div>
           </div>
 
-          {/* ✅ Restored your Quantity, Add to Cart, and Buy Now buttons */}
+          {/*  Restored your Quantity, Add to Cart, and Buy Now buttons */}
           <div className="flex items-center gap-6 mt-auto pt-6 border-t">
             <div className="flex items-center border border-dark-gray rounded-full overflow-hidden">
               <button
@@ -424,7 +424,7 @@ export default function ProductDetailsPage() {
         </div>
       </div>
 
-      {/* ✅ Restored your Details / Reviews tab section */}
+      {/*  Restored your Details / Reviews tab section */}
       <div className="mt-16 border-t pt-6">
         <div className="flex gap-6 mb-4">
           {["details", "reviews"].map((label) => (
@@ -472,7 +472,7 @@ export default function ProductDetailsPage() {
           You Might Also Like
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-3 gap-y-8">
-          {/* ✅ FIX: This now correctly maps over the `relatedProducts` state */}
+          {/*  FIX: This now correctly maps over the `relatedProducts` state */}
           {relatedProducts.map((p) => (
             <ProductCard
               key={p.id}

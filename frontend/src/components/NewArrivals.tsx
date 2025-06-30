@@ -11,7 +11,7 @@ export default function NewArrivals() {
   const [products, setProducts] = useState<Product[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // ✅ useEffect to fetch the latest 10 products on mount
+  //  useEffect to fetch the latest 10 products on mount
   useEffect(() => {
     const fetchNewArrivals = async () => {
       try {
@@ -47,14 +47,14 @@ export default function NewArrivals() {
           className="flex gap-4 overflow-x-auto scroll-smooth pb-2 no-scrollbar scrollbar-hide"
         >
           {products.map((product) => (
-            // ✅ Each card is now a link to the product's detail page
+            //  Each card is now a link to the product's detail page
             <Link
               href={`/products/${product.id}`}
               key={product.id}
               className="block flex-shrink-0"
             >
               <div className="w-[350px] min-h-[650px] flex flex-col bg-mint-light rounded-lg border border-light-green shadow-soft overflow-hidden group hover:shadow-md transition-shadow">
-                {/* ✅ Image stays fixed height */}
+                {/*  Image stays fixed height */}
                 <div className="h-[400px] bg-gray-100 overflow-hidden">
                   <img
                     src={`${process.env.NEXT_PUBLIC_API_BASE_URL}${product.imageUrls[0]}`}
@@ -63,7 +63,7 @@ export default function NewArrivals() {
                   />
                 </div>
 
-                {/* ✅ Content grows/shrinks but within limits */}
+                {/*  Content grows/shrinks but within limits */}
                 <div className="flex flex-col justify-between p-4 flex-grow">
                   <div className="mb-4">
                     <h3 className="font-reem-kufi text-[20px] font-extrabold text-dark-gray mb-4">
@@ -77,7 +77,7 @@ export default function NewArrivals() {
                     </h5>
                   </div>
 
-                  {/* ✅ Price section pinned to bottom */}
+                  {/*  Price section pinned to bottom */}
                   <div className="flex items-baseline justify-between mt-auto">
                     <div className="flex items-baseline gap-1">
                       <sup className="text-sm font-crimson text-dark-gray relative -top-1">

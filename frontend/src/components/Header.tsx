@@ -23,16 +23,18 @@ export default function Header() {
   const { itemCount, fetchCart, clearCart } = useCartStore();
   const { user, fetchUser, logout } = useAuthStore();
 
-  // ✅ State for the new user dropdown menu
+  //  State for the new user dropdown menu
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // ✅ This hook runs once when the component loads to check for a user.
+  const usr = useAuthStore((state) => state.user);
+
+  //  This hook runs once when the component loads to check for a user.
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
 
-  // ✅ This second hook runs whenever the 'user' object changes.
+  //  This second hook runs whenever the 'user' object changes.
   // If the user logs in, this will trigger and fetch their cart.
   useEffect(() => {
     if (user) {
@@ -40,7 +42,7 @@ export default function Header() {
     }
   }, [user, fetchCart]);
 
-  // ✅ Hook to close dropdown when clicking outside
+  //  Hook to close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -58,11 +60,20 @@ export default function Header() {
     };
   }, [isUserMenuOpen]);
 
-  // ✅ Correctly call the global logout action from the store
+  //  Correctly call the global logout action from the store
   const handleLogout = async () => {
     await logout();
     setIsUserMenuOpen(false);
     router.push("/login");
+  };
+
+  const handleHomeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (usr?.role === "admin") {
+      router.push("/admin/products");
+    } else {
+      router.push("/");
+    }
   };
 
   const navLinks = [
@@ -81,16 +92,26 @@ export default function Header() {
         </Link>
 
         {/* Center Nav - Unchanged */}
-        <nav className="hidden md:flex items-center gap-8">
-          {navLinks.map(({ label, href }) => (
-            <a
-              key={label}
-              href={href}
-              className="font-ntr text-lg text-dark-gray hover:text-accent-red transition-colors"
-            >
-              {label}
-            </a>
-          ))}
+        <nav>
+          <ul className="flex gap-4">
+            {navLinks.map((link) => {
+              if (link.label === "HOME") {
+                return (
+                  <li key={link.label}>
+                    <a href="#" onClick={handleHomeClick}>
+                      {link.label}
+                    </a>
+                  </li>
+                );
+              }
+
+              return (
+                <li key={link.label}>
+                  <Link href={link.href}>{link.label}</Link>
+                </li>
+              );
+            })}
+          </ul>
         </nav>
 
         {/* Action Icons - Unchanged wrapper */}
@@ -106,7 +127,7 @@ export default function Header() {
               </span>
             )}
           </Link>
-          {/* ✅ FINAL AUTH BLOCK: Replaces the simple Login/Logout toggle */}
+          {/*  FINAL AUTH BLOCK: Replaces the simple Login/Logout toggle */}
 
           <div className="flex items-center gap-4">
             {user ? (

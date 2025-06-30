@@ -9,7 +9,7 @@ import { Brand } from "@/types";
 
 export default function ShopByBrands() {
   const [brands, setBrands] = useState<Brand[]>([]);
-  // ✅ Create a ref to access the scrollable container
+  //  Create a ref to access the scrollable container
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function ShopByBrands() {
     fetchBrands();
   }, []);
 
-  // ✅ Handler to scroll the container
+  //  Handler to scroll the container
   const handleScroll = (scrollOffset: number) => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({
@@ -42,7 +42,7 @@ export default function ShopByBrands() {
       </h2>
 
       <div className="relative">
-        {/* ✅ Wrapper that overlays arrows inside the scroll area perfectly */}
+        {/*  Wrapper that overlays arrows inside the scroll area perfectly */}
         <div className="pointer-events-none absolute inset-y-0 left-0 right-0 flex justify-between items-center px-4 z-10">
           <button
             onClick={() => handleScroll(-300)}
@@ -59,7 +59,7 @@ export default function ShopByBrands() {
           </button>
         </div>
 
-        {/* ✅ Scrollable Brand Cards */}
+        {/*  Scrollable Brand Cards */}
         <div
           ref={scrollContainerRef}
           className="flex gap-6 overflow-x-auto scroll-smooth scroll-snap-x mandatory no-scrollbar px-4"
