@@ -1,30 +1,39 @@
 "use client";
 
+import Image from "next/image";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import NotchedInput from "@/components/ui/NotchedInput";
+import { useAuthStore } from "@/store/authStore";
+import toast from "react-hot-toast";
+import api from "@/lib/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
+  // Get the fetchUser action from our auth store
+  const fetchUser = useAuthStore((state) => state.fetchUser);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`,
-        { email, password },
-        { withCredentials: true }
-      );
+      // 1. Call the login API endpoint
+      await api.post("/auth/login", { email, password });
 
-      console.log("Login success:", response.data);
+      // 2. ✅ THIS IS THE FIX: After successful login, fetch the user's
+      //    profile to update the global state.
+      await fetchUser();
 
-      // 👇 Redirect to your protected dashboard or admin page
-      router.push("/dashboard"); // or "/admin", "/orders", whatever you set
+      toast.success("Login successful!");
+
+      // 3. Redirect to the homepage
+      router.push("/");
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Login failed:. Please check your credentials.");
       alert("Login failed. Check console for details.");
     }
   };
@@ -33,30 +42,36 @@ export default function LoginPage() {
     <section className="min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-mint-light">
       {/* Logo */}
       <div className="mb-6 text-center">
-        <img src="/logo.svg" alt="Logo" className="h-10 mx-auto" />
+        <Image
+          src="/logo/nocillax-typo.svg"
+          alt="Logo"
+          width={120}
+          height={40}
+          className="mx-auto h-10 w-auto"
+        />
       </div>
 
-      <div className="bg-white border border-light-green shadow-sm rounded-xl px-8 pt-10 pb-12 max-w-md w-full">
+      <div className="bg-mint-light border border-light-green shadow-md rounded-xl px-8 pt-10 pb-12 max-w-md w-full">
         <h1 className="text-xl font-playfair font-bold text-dark-gray mb-6 text-center">
           Welcome Back
         </h1>
 
         <form onSubmit={handleLogin} className="flex flex-col gap-5">
-          <input
+          <NotchedInput
+            label="Email"
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="input-box"
             required
           />
 
-          <input
+          <NotchedInput
+            label="Password"
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="input-box"
             required
           />
 

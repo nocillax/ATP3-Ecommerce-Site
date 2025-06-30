@@ -98,6 +98,11 @@ export class ProductsController {
     return this.productsService.addProduct(dto);
   }
 
+  @Get('bestsellers')
+  findBestSellers() {
+    return this.productsService.findBestSellers();
+  }
+
   @Get()
   async getProducts(
     @Query(new ValidationPipe({ transform: true })) query: GetProductsQueryDto,

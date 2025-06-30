@@ -125,3 +125,65 @@ export interface Review {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CartProduct {
+  id: number;
+  name: string;
+  imageUrls: string[];
+  brand: {
+    name: string;
+  };
+}
+
+// A simplified version of ProductVariant for use in the cart
+export interface CartProductVariant {
+  id: number;
+  color: string;
+  priceOverride: number | null;
+  product: CartProduct; // This will be a simplified Product type
+  imageUrls: string[]; // Array of image URLs for the variant
+}
+
+// Represents a single item within the cart
+export interface CartItem {
+  id: number;
+  quantity: number;
+  price: number; // This is the line total (unit price * quantity)
+  productVariant: CartProductVariant;
+  unitPrice: number; // The effective unit price for this item
+  originalUnitPrice: number; // The original unit price before any discounts
+}
+
+// Represents the entire cart object
+export interface Cart {
+  id: number;
+  totalPrice: number;
+  cartItems: CartItem[];
+}
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: "admin" | "customer";
+  phone: string | null;
+  defaultShippingAddress: string | null;
+}
+
+export interface HeroImage {
+  id: number;
+  title: string;
+  imageUrl: string; // The path to the uploaded image
+  linkUrl: string; // The URL the "Shop Now" button will go to
+  isActive: boolean; // Toggle to easily show/hide banners
+  displayOrder: number; // To control the order in the slideshow
+}
+
+export interface HeroImageForm {
+  title: string;
+  linkUrl: string;
+  isActive?: boolean;
+  displayOrder?: number;
+  imageUrl?: string; // Optional for updates
+  newImage?: File; // Optional for new uploads
+}

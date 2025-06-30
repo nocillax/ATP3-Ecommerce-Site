@@ -1,88 +1,88 @@
-// FILE: src/app/products/page.tsx
 "use client";
 
-import ProductCard from "@/components/ProductCard";
 import { useState, useEffect } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import ProductCard from "@/components/ProductCard";
 import api from "@/lib/api";
-import { Product, Category } from "@/types"; // Assuming you have these in types/index.ts
+import { Product, Category, Brand } from "@/types"; // Import Brand type
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]); // ✅ State for brands
   const [isLoading, setIsLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
 
-  // State for all filters and sorting
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("createdAt");
-  const [sortDirection, setSortDirection] = useState("desc");
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 18; // Increased for better layout
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  // Fetch initial data for products and featured categories
+  const [filters, setFilters] = useState({
+    category: searchParams.get("category") || "All",
+    brand: searchParams.get("brand") || "All", // ✅ Add brand to filters
+    search: searchParams.get("search") || "",
+    sort: searchParams.get("sort") || "createdAt-desc",
+    page: Number(searchParams.get("page")) || 1,
+  });
+
+  // Fetch initial data for filters
   useEffect(() => {
-    const fetchInitialData = async () => {
-      setIsLoading(true);
+    // Fetch both categories and brands for the filter buttons
+    const fetchFilterData = async () => {
       try {
-        const [productsRes, categoriesRes] = await Promise.all([
-          api.get("/products", { params: { limit: 1000 } }), // Get all products
-          api.get("/categories", { params: { isFeatured: true } }), // Get only featured categories
+        const [categoriesRes, brandsRes] = await Promise.all([
+          api.get("/categories", { params: { isFeatured: true } }),
+          api.get("/brands"),
         ]);
-        setProducts(productsRes.data.data);
         setCategories(categoriesRes.data);
+        setBrands(brandsRes.data);
       } catch (error) {
-        console.error("Failed to fetch data:", error);
+        console.error("Failed to fetch filter data", error);
+      }
+    };
+    fetchFilterData();
+  }, []);
+
+  // Main useEffect to fetch products when any filter changes
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      const params = new URLSearchParams();
+      params.set("page", String(filters.page));
+      params.set("limit", "18");
+      if (filters.search) params.set("search", filters.search);
+      if (filters.category !== "All") params.set("category", filters.category);
+      if (filters.brand !== "All") params.set("brand", filters.brand); // ✅ Add brand to API call
+      if (filters.sort) {
+        const [sort, order] = filters.sort.split("-");
+        params.set("sort", sort);
+        params.set("order", order.toUpperCase());
+      }
+
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+
+      try {
+        const response = await api.get(`/products?${params.toString()}`);
+        setProducts(response.data.data);
+        setTotalPages(response.data.totalPages);
+      } catch (error) {
+        setProducts([]);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchInitialData();
-  }, []);
+    fetchProducts();
+  }, [filters, pathname, router]);
 
-  const categoryOptions = ["All", ...categories.map((c) => c.name)];
+  const handleFilterChange = (
+    filterName: keyof typeof filters,
+    value: string | number
+  ) => {
+    setFilters((prev) => ({ ...prev, [filterName]: value, page: 1 }));
+  };
 
-  // Client-side filtering and sorting logic
-  let filteredProducts = products
-    .filter(
-      (p) =>
-        selectedCategory === "All" ||
-        p.categories.some((c) => c.name === selectedCategory)
-    )
-    .filter((p) =>
-      `${p.name} ${p.brand.name}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-    )
-    .filter((p) => (minPrice ? p.price >= parseInt(minPrice) : true))
-    .filter((p) => (maxPrice ? p.price <= parseInt(maxPrice) : true));
-
-  // Sorting logic
-  filteredProducts.sort((a, b) => {
-    let result = 0;
-    switch (sortBy) {
-      case "name":
-        result = a.name.localeCompare(b.name);
-        break;
-      case "price":
-        result = a.price - b.price;
-        break;
-      case "rating":
-        result = (b.rating ?? 0) - (a.rating ?? 0);
-        break;
-      case "createdAt":
-        result =
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        break;
-    }
-    return sortDirection === "asc" ? result : -result;
-  });
-
-  // 📄 Pagination
-  const start = (currentPage - 1) * productsPerPage;
-  const paginated = filteredProducts.slice(start, start + productsPerPage);
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  const categoryOptions = [{ id: 0, slug: "All", name: "All" }, ...categories];
+  const brandOptions = [{ id: 0, slug: "All", name: "All" }, ...brands];
 
   return (
     <section className="max-w-7xl mx-auto px-4 py-10">
@@ -90,87 +90,63 @@ export default function ProductsPage() {
         All Products
       </h2>
 
-      {/* Filter controls */}
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-        <input
-          type="text"
-          placeholder="Search product or brand..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="md:col-span-2 w-full px-5 py-2 border border-dark-gray rounded-full bg-mint-light focus:outline-none"
-        />
-        <select
-          value={sortBy + "-" + sortDirection}
-          onChange={(e) => {
-            const [sort, direction] = e.target.value.split("-");
-            setSortBy(sort);
-            setSortDirection(direction);
-          }}
-          className="px-3 py-1 border border-dark-gray text-dark-gray rounded-sm bg-mint-light focus:outline-none"
-        >
-          <option value="createdAt-desc">Newest</option>
-          <option value="price-asc">Price: Low to High</option>
-          <option value="price-desc">Price: High to Low</option>
-          <option value="rating-desc">Rating: High to Low</option>
-          <option value="name-asc">Name: A-Z</option>
-          <option value="name-desc">Name: Z-A</option>
-        </select>
+      {/* Search and Sort controls */}
+
+      {/* Category Filter */}
+      <div className="mb-2">
+        <span className="text-sm font-bold mr-4">Categories:</span>
+        <div className="inline-flex gap-3 flex-wrap">
+          {categoryOptions.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => handleFilterChange("category", cat.slug)} /*...*/
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="mb-6 flex gap-3 flex-wrap">
-        {categoryOptions.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-1.5 rounded-full border text-sm font-bold transition ${
-              selectedCategory === cat
-                ? "bg-dark-gray text-mint-light"
-                : "border-dark-gray text-dark-gray"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
+      {/* ✅ NEW: Brand Filter */}
+      <div className="mb-6">
+        <span className="text-sm font-bold mr-4">Brands:</span>
+        <div className="inline-flex gap-3 flex-wrap">
+          {brandOptions.map((brand) => (
+            <button
+              key={brand.id}
+              onClick={() => handleFilterChange("brand", brand.slug)}
+              className={`px-4 py-1.5 rounded-full border text-sm font-bold transition ${
+                filters.brand === brand.slug
+                  ? "bg-dark-gray text-mint-light"
+                  : "border-dark-gray text-dark-gray"
+              }`}
+            >
+              {brand.name}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Product Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-3 gap-y-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-3 gap-y-8 min-h-[400px]">
         {isLoading ? (
-          <p>Loading products...</p>
-        ) : (
-          paginated.map((product) => (
+          <p>Loading...</p>
+        ) : products.length > 0 ? (
+          products.map((product) => (
             <ProductCard
               key={product.id}
-              id={product.id}
-              name={product.name}
+              {...product}
               brand={product.brand.name}
-              price={product.price}
-              imageUrls={product.imageUrls}
-              isOnSale={product.isOnSale}
-              discountPercent={product.discountPercent}
-              rating={product.rating}
-              reviewCount={product.reviewCount}
             />
           ))
+        ) : (
+          <p className="col-span-full">
+            No products found for the selected filters.
+          </p>
         )}
       </div>
 
       {/* Pagination */}
-      <div className="mt-10 flex justify-center gap-2">
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-          <button
-            key={pageNum}
-            onClick={() => setCurrentPage(pageNum)}
-            className={`px-3 py-1.5 rounded border text-sm font-bold ${
-              pageNum === currentPage
-                ? "bg-dark-gray text-mint-light border-dark-gray"
-                : "border-dark-gray text-dark-gray hover:bg-dark-gray hover:text-mint-light"
-            }`}
-          >
-            {pageNum}
-          </button>
-        ))}
-      </div>
     </section>
   );
 }

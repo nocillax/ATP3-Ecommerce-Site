@@ -1,24 +1,34 @@
+// FILE: src/components/FeaturedCategories.tsx
 "use client";
 
-import {
-  User,
-  Droplets,
-  Sparkles,
-  Scissors,
-  GraduationCap,
-  ShoppingBag,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import api from "@/lib/api";
+import { Category } from "@/types"; // Assuming Category type is in your types file
 
-const categories = [
-  { name: "MODEST\nCLOTHING", icon: User },
-  { name: "FRAGRANCE", icon: Droplets },
-  { name: "SKINCARE", icon: Sparkles },
-  { name: "HAIRCARE", icon: Scissors },
-  { name: "KID'S\nCOLLECTION", icon: GraduationCap },
-  { name: "ACCESSORIES", icon: ShoppingBag },
-];
+export default function FeaturedCategories() {
+  const [categories, setCategories] = useState<Category[]>([]);
 
-const FeaturedCategories = () => {
+  useEffect(() => {
+    const fetchFeaturedCategories = async () => {
+      try {
+        // Fetch only the categories marked as "isFeatured"
+        const response = await api.get("/categories", {
+          params: { isFeatured: true },
+        });
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Failed to fetch featured categories:", error);
+      }
+    };
+    fetchFeaturedCategories();
+  }, []);
+
+  if (categories.length === 0) {
+    // Don't render the section if there are no featured categories
+    return null;
+  }
+
   return (
     <section className="w-full px-4 md:px-6 mt-12 mb-8">
       <div className="max-w-3xl mx-auto text-center">
@@ -26,24 +36,20 @@ const FeaturedCategories = () => {
           Featured Categories
         </h2>
 
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-4 md:gap-6">
-          {categories.map(({ name, icon: Icon }, i) => (
-            <div
-              key={i}
-              className="flex flex-col items-center cursor-pointer group"
+        <div className="flex flex-wrap justify-center gap-6">
+          {categories.map((category) => (
+            <Link
+              href={`/products?category=${category.slug}`}
+              key={category.id}
+              className="w-24 h-20 bg-brown-light border border-brown rounded-md shadow-category flex flex-col items-center justify-center px-4 hover:scale-105 transition-transform"
             >
-              <div className="w-[90px] h-[110px] bg-brown-light border border-brown rounded-md shadow-category flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                <Icon className="w-12 h-12 text-brown" strokeWidth={1.5} />
-              </div>
-              <p className="text-[11px] font-reem-kufi text-brown text-center whitespace-pre-line">
-                {name}
+              <p className="text-sm font-reem-kufi text-brown text-center font-bold">
+                {category.name}
               </p>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
     </section>
   );
-};
-
-export default FeaturedCategories;
+}

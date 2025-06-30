@@ -1,6 +1,8 @@
+import { useAuth } from "@/hooks/useAuth";
+import { useAuthStore } from "@/store/authStore";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { ReactNode, useEffect } from "react";
 
 const links = [
   { href: "/admin", label: "Dashboard" },
@@ -12,6 +14,37 @@ const links = [
 
 const AdminLayout = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
+
+  // const { user, isLoading } = useAuth();
+
+  const { user, isLoading, fetchUser } = useAuthStore();
+  const router = useRouter();
+
+  /*   useEffect(() => {
+    // Wait until the authentication check is complete
+    if (!isLoading) {
+      // If there is no user, or the user is not an admin, redirect them.
+      if (!user || user.role !== "admin") {
+        router.push("/login"); // Or redirect to homepage '/'
+      }
+    }
+  }, [user, isLoading, router]); */
+
+  useEffect(() => {
+    // We still fetch the user to get their details like name and role
+    fetchUser();
+  }, [fetchUser]);
+
+  useEffect(() => {
+    // This effect runs whenever the loading status or user changes.
+    // It acts as our client-side gatekeeper.
+    if (!isLoading) {
+      if (!user || user.role !== "admin") {
+        console.log("CLIENT-SIDE GUARD: User is not an admin. Redirecting.");
+        router.push("/login");
+      }
+    }
+  }, [user, isLoading, router]);
 
   return (
     <div className="min-h-screen flex bg-[#f6fef9]">

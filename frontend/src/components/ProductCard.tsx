@@ -35,7 +35,7 @@ export default function ProductCard({
     (imageUrls?.[0] || "/placeholder.png");
 
   return (
-    <Link href={`/product/${id}`} className="block group">
+    <Link href={`/products/${id}`} className="block group">
       <div className="w-[186px] bg-mint-light rounded-md border border-light-green shadow-category overflow-hidden hover:shadow-lg transition-shadow relative flex flex-col h-full">
         {/* ✅ NEW: Discount Badge */}
         {isOnSale && (discountPercent ?? 0) > 0 && (

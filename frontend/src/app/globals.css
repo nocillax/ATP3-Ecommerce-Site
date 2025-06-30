@@ -59,6 +59,15 @@
   .stripe-btn {
     @apply bg-[#635BFF] text-white hover:bg-[#5345e0] transition;
   }
+
+  /* Hide scrollbars in all browsers */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none; /* Firefox */
+  }
 }
 
 /* Custom scrollbar */

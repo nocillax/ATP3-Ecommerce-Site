@@ -103,7 +103,7 @@ export default function ProductModal({
         isActive: initialData.isActive ?? false,
         isOnSale: initialData.isOnSale ?? false,
         isFeatured: initialData.isFeatured ?? false,
-        description: "", // You can map this if your API provides it
+        description: initialData.description ?? "",
         imageUrls: initialData.imageUrls ?? [],
         newImages: [],
         variants:

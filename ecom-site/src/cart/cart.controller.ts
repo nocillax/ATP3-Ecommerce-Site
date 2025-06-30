@@ -23,7 +23,7 @@ import { UpdateCartItemDto } from './DTO/update-cart-item.dto';
 
 @Controller('cart')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles('customer')
+@Roles('customer', 'admin')
 export class CartController {
   constructor(private readonly cartService: CartService) {}
 

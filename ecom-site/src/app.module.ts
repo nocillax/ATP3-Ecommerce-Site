@@ -16,6 +16,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { ConfigService } from '@nestjs/config';
 import { BrandModule } from 'src/brand/brand.module';
+import { HeroImagesModule } from 'src/hero-images/hero-image.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { BrandModule } from 'src/brand/brand.module';
     OrderModule,
     MailModule,
     BrandModule,
+    HeroImagesModule, // Ensure this is imported
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -41,6 +41,7 @@ export class CartService {
     return this.cartRepo.findOne({
       where: { user: { id: userId } },
       relations: [
+        'user',
         'cartItems',
         'cartItems.productVariant',
         'cartItems.productVariant.product',
@@ -78,13 +79,34 @@ export class CartService {
     return cart.cartItems.reduce((sum, i) => sum + Number(i.price), 0);
   }
 
+  private mapCartItem(item: CartItem) {
+    const unitPrice = item.price / item.quantity;
+    const originalUnitPrice =
+      item.productVariant.priceOverride ?? item.productVariant.product.price;
+
+    return {
+      id: item.id,
+      quantity: item.quantity,
+      price: item.price, // This is the total line price (unitPrice * quantity)
+      unitPrice: unitPrice,
+      originalUnitPrice: parseFloat(String(originalUnitPrice)),
+      productVariant: item.productVariant,
+    };
+  }
+
   /* ───────────────────────────────────────────────────────── Public API ─── */
 
   async getCart(userId: number) {
     const cart =
       (await this.findCartByUserId(userId)) ??
       (await this.createCartForUser(userId));
-    return cart;
+
+    const detailedCartItems = cart.cartItems.map(this.mapCartItem);
+
+    return {
+      ...cart,
+      cartItems: detailedCartItems,
+    };
   }
 
   async addToCart(userId: number, dto: AddToCartDto) {

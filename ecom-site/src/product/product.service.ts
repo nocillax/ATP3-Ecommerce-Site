@@ -101,6 +101,7 @@ export class ProductsService {
     order: 'ASC' | 'DESC';
     search?: string;
     category?: string;
+    brand?: string;
     minPrice?: number;
     maxPrice?: number;
     minRating?: number;
@@ -142,15 +143,18 @@ export class ProductsService {
       });
     }
     if (params.category) {
-      qb.andWhere('LOWER(category.name) = LOWER(:categoryName)', {
-        categoryName: params.category,
-      });
+      qb.andWhere('category.slug = :slug', { slug: params.category });
     }
     if (params.color) {
       qb.andWhere('LOWER(variant.color) = LOWER(:color)', {
         color: params.color,
       });
     }
+
+    if (params.brand) {
+      qb.andWhere('brand.slug = :brandSlug', { brandSlug: params.brand });
+    }
+
     if (params.minPrice)
       qb.andWhere('product.price >= :minPrice', { minPrice: params.minPrice });
     if (params.maxPrice)
@@ -226,77 +230,6 @@ export class ProductsService {
     return { message: `Product with id ${id} deleted successfully` };
   }
 
-  /* async updateProduct(
-    id: number,
-    dto: UpdateProductDto,
-    newProductImages: string[],
-    newVariantImages: string[],
-  ): Promise<Product> {
-    const { categoryIds, brandId, variants, imageUrls, ...rest } = dto;
-
-    // 1. Find the product and its current relations
-    const product = await this.productRepo.findOne({
-      where: { id },
-      relations: ['variants', 'categories'], // Load existing variants and categories
-    });
-    if (!product)
-      throw new NotFoundException(`Product with ID ${id} not found`);
-
-    // 2. IMAGE DELETION: Find which old images were removed in the UI
-    const oldImageUrls = product.imageUrls ?? [];
-    const keptImageUrls = imageUrls ?? [];
-    const imagesToDelete = oldImageUrls.filter(
-      (url) => !keptImageUrls.includes(url),
-    );
-
-    // Asynchronously delete the files from the server
-    for (const url of imagesToDelete) {
-      const path = join(__dirname, '..', '..', url); // Build path from project root
-      try {
-        await fs.unlink(path);
-      } catch (err) {
-        console.error(`Failed to delete old image file: ${path}`, err);
-      }
-    }
-
-    // 3. VARIANT REPLACEMENT: Delete all old variants associated with this product
-    await this.variantRepo.remove(product.variants);
-
-    // 4. PREPARE NEW DATA
-    // Combine kept old images with new uploaded images
-    const finalImageUrls = [...keptImageUrls, ...newProductImages];
-
-    // Create new variant entities from the DTO data.
-    // We'll assign the new variant images to them.
-    let variantImageCounter = 0;
-    const newVariantEntities = (variants ?? []).map((v_dto) => {
-      const newVariant = this.variantRepo.create(v_dto);
-      // If there are new variant images, assign them in order
-      if (newVariantImages[variantImageCounter]) {
-        newVariant.imageUrls = [newVariantImages[variantImageCounter]];
-        variantImageCounter++;
-      }
-      return newVariant;
-    });
-
-    // 5. UPDATE THE PRODUCT OBJECT
-    // Merge the simple fields (name, price, etc.)
-    Object.assign(product, rest);
-    product.imageUrls = finalImageUrls; // Assign the final list of image URLs
-    product.variants = newVariantEntities; // Assign the brand new set of variants
-
-    // Update relations if they are provided
-    if (brandId) {
-      product.brand = await this.brandRepo.findOneBy({ id: brandId });
-    }
-    if (categoryIds) {
-      product.categories = await this.categoryRepo.findByIds(categoryIds);
-    }
-
-    // 6. SAVE AND RETURN
-    return this.productRepo.save(product);
-  } */
-
   async updateProduct(id: number, dto: UpdateProductDto): Promise<Product> {
     // We use `preload` to get an entity with the new data merged in.
     // It finds the product by ID and loads the DTO data onto it.
@@ -335,5 +268,13 @@ export class ProductsService {
 
     // AFTER saving, call our new findOne method to get the complete, fresh data.
     return this.findOne(id);
+  }
+
+  async findBestSellers(): Promise<Product[]> {
+    return this.productRepo.find({
+      order: { reviewCount: 'DESC' }, // Order by the number of reviews, highest first
+      take: 10, // Get the top 8 products
+      relations: ['brand', 'categories', 'variants'], // Load necessary data for the card
+    });
   }
 }

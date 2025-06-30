@@ -31,7 +31,7 @@ export class ReviewsController {
 
   @Post()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('customer')
+  @Roles('customer', 'admin')
   addReview(
     @Body() dto: CreateReviewDto,
     @Request() req: any,

@@ -1,11 +1,10 @@
 import HeroSection from "@/components/HeroSection";
-import Header from "@/components/Header";
 import FeaturedCategories from "@/components/FeaturedCategories";
 import OffersSection from "@/components/OffersSection";
 import BestSellers from "@/components/BestSellers";
 import NewArrivals from "@/components/NewArrivals";
-import CollectionShowcase from "@/components/CollectionShowcase";
-import Footer from "@/components/Footer";
+import BrandShowcase from "@/components/BrandShowcase";
+import FeaturedProducts from "@/components/FeaturedProducts";
 
 const Index = () => {
   return (
@@ -13,10 +12,10 @@ const Index = () => {
       <main>
         <HeroSection />
         <FeaturedCategories />
-        <OffersSection />
         <BestSellers />
         <NewArrivals />
-        <CollectionShowcase />
+        <FeaturedProducts />
+        <BrandShowcase />
       </main>
     </div>
   );

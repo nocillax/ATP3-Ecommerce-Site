@@ -1,3 +1,4 @@
+// FILE: src/components/FeaturedProducts.tsx
 "use client";
 
 import { useRef, useState, useEffect } from "react";
@@ -6,40 +7,46 @@ import ProductCard from "./ProductCard";
 import api from "@/lib/api";
 import { Product } from "@/types";
 
-export default function BestSellers() {
+export default function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([]);
-  // ✅ Add a ref to access the scrollable container
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchBestSellers = async () => {
+    const fetchFeaturedProducts = async () => {
       try {
-        const response = await api.get("/products/bestsellers");
-        setProducts(response.data);
+        // ✅ The main change is the API call inside useEffect
+        const response = await api.get("/products", {
+          params: {
+            isFeatured: true, // Fetch products where isFeatured is true
+            limit: 10, // Limit to 10 products
+          },
+        });
+        // The paginated endpoint nests the array in the 'data' property
+        setProducts(response.data.data);
       } catch (error) {
-        console.error("Failed to fetch best sellers:", error);
+        console.error("Failed to fetch featured products:", error);
       }
     };
-    fetchBestSellers();
+    fetchFeaturedProducts();
   }, []);
 
-  // ✅ Add handlers to scroll the container
   const scroll = (direction: "left" | "right") => {
-    const offset = direction === "left" ? -320 : 320; // Adjust scroll distance if needed
+    const offset = direction === "left" ? -320 : 320;
     scrollRef.current?.scrollBy({ left: offset, behavior: "smooth" });
   };
 
-  if (products.length === 0) return null;
+  if (products.length === 0) {
+    return null; // Don't render the section if there are no featured products
+  }
 
   return (
     <section className="w-full max-w-7xl mx-auto px-4 py-10">
+      {/* ✅ The heading is updated */}
       <h2 className="text-2xl font-playfair font-bold text-dark-gray mb-6 text-center">
-        Our Best Sellers
+        Featured Products
       </h2>
 
-      {/* ✅ The container for the carousel and arrows */}
       <div className="relative">
-        {/* Left Arrow */}
         <button
           onClick={() => scroll("left")}
           className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-gray/20 hover:bg-dark-gray/10 rounded-full p-2 transition "
@@ -47,7 +54,6 @@ export default function BestSellers() {
           <ChevronLeft className="text-dark-gray" />
         </button>
 
-        {/* The scrollable container */}
         <div
           ref={scrollRef}
           className="flex items-center gap-4 overflow-x-auto scroll-smooth no-scrollbar scrollbar-hide px-4"
@@ -69,7 +75,6 @@ export default function BestSellers() {
           ))}
         </div>
 
-        {/* Right Arrow */}
         <button
           onClick={() => scroll("right")}
           className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-gray/20 hover:bg-dark-gray/10 rounded-full p-2 transition "
