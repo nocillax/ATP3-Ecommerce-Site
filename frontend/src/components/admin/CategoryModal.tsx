@@ -1,26 +1,26 @@
-// FILE: src/components/admin/CategoryModal.tsx
-// ACTION: Replace the entire file with this robust version.
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import NotchedInput from "@/components/ui/NotchedInput";
-import { Category, CategoryForm } from "@/types"; // Import our official types
+import { Category, CategoryForm } from "@/types";
 
-// 1. Define the shape of the data AS IT EXISTS inside the modal's state.
 interface ModalFormState {
   name: string;
   description: string;
   isFeatured: boolean;
 }
 
-// 2. Update the props to be strongly-typed, using our official types.
+interface ValidationErrors {
+  name?: string;
+  description?: string;
+}
+
 interface CategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialData?: Category; // Use the Category type for incoming data
-  onSubmit: (data: CategoryForm) => void; // Use the CategoryForm for submitted data
+  initialData?: Category;
+  onSubmit: (data: CategoryForm) => void;
 }
 
 export default function CategoryModal({
@@ -29,49 +29,56 @@ export default function CategoryModal({
   initialData,
   onSubmit,
 }: CategoryModalProps) {
-  // 3. The form state is now based on our ModalFormState interface.
   const [form, setForm] = useState<ModalFormState>({
     name: "",
     description: "",
     isFeatured: false,
   });
 
-  // 4. This useEffect correctly translates API data into form state.
+  const [errors, setErrors] = useState<ValidationErrors>({});
+
   useEffect(() => {
     if (initialData) {
-      // When editing, populate the form with existing data
       setForm({
         name: initialData.name ?? "",
         description: initialData.description ?? "",
         isFeatured: initialData.isFeatured ?? false,
       });
     } else {
-      // When creating, reset to the default state
       setForm({ name: "", description: "", isFeatured: false });
     }
   }, [initialData, isOpen]);
 
-  // This generic handler works for both text inputs and checkboxes.
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, type, checked, value } = e.target;
+    const { name, type, value, checked } = e.target;
     setForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  // 5. This handleSubmit now translates form state into the clean CategoryForm object.
+  const validateForm = (): ValidationErrors => {
+    const newErrors: ValidationErrors = {};
+    if (!form.name.trim()) newErrors.name = "Category name is required.";
+    if (!form.description.trim())
+      newErrors.description = "Description is required.";
+    return newErrors;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Create the clean data object that matches the CategoryForm contract.
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
     const dataToSend: CategoryForm = {
       name: form.name,
       description: form.description,
       isFeatured: form.isFeatured,
     };
-
-    onSubmit(dataToSend); // Send the clean data up to the parent.
+    onSubmit(dataToSend);
     onClose();
   };
 
@@ -90,6 +97,17 @@ export default function CategoryModal({
         <h2 className="text-lg font-bold mb-4 font-playfair text-dark-gray">
           {initialData ? "Edit Category" : "Add New Category"}
         </h2>
+
+        {/* ✅ Validation Summary Block */}
+        {Object.keys(errors).length > 0 && (
+          <div className="p-3 border border-red-300 bg-red-50 rounded-md text-sm mb-4">
+            <ul className="list-disc list-inside text-red-600">
+              {Object.values(errors).map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <NotchedInput

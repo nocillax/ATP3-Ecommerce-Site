@@ -8,8 +8,14 @@ import NotchedTextarea from "@/components/ui/NotchedTextarea";
 interface ModalFormState {
   name: string;
   description: string;
-  imageUrl: string; // URL of existing image
-  newImage: File | null; // For the new file to upload
+  imageUrl: string;
+  newImage: File | null;
+}
+
+interface ValidationErrors {
+  name?: string;
+  description?: string;
+  newImage?: string;
 }
 
 interface BrandModalProps {
@@ -32,6 +38,8 @@ export default function BrandModal({
     newImage: null,
   });
 
+  const [errors, setErrors] = useState<ValidationErrors>({});
+
   useEffect(() => {
     if (initialData) {
       setForm({
@@ -50,7 +58,6 @@ export default function BrandModal({
     }
   }, [initialData, isOpen]);
 
-  // ESC to close
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -64,7 +71,6 @@ export default function BrandModal({
   ) => {
     const { name, value } = e.target;
 
-    // Check if it's a file input specifically by its type
     if (e.target.type === "file" && "files" in e.target) {
       const files = (e.target as HTMLInputElement).files;
       setForm((prev) => ({ ...prev, newImage: files?.[0] || null }));
@@ -77,9 +83,25 @@ export default function BrandModal({
     setForm((prev) => ({ ...prev, imageUrl: "", newImage: null }));
   };
 
+  const validateForm = (): ValidationErrors => {
+    const newErrors: ValidationErrors = {};
+    if (!form.name.trim()) newErrors.name = "Brand name is required.";
+    if (!form.description.trim())
+      newErrors.description = "Description is required.";
+    if (!form.imageUrl && !form.newImage)
+      newErrors.newImage = "Logo image is required.";
+    return newErrors;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(form); // We'll send the whole form state up
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
+    onSubmit(form);
     onClose();
   };
 
@@ -94,6 +116,18 @@ export default function BrandModal({
         <h2 className="text-lg font-bold mb-4">
           {initialData ? "Edit Brand" : "Add Brand"}
         </h2>
+
+        {/* ✅ Validation Summary Block */}
+        {Object.keys(errors).length > 0 && (
+          <div className="p-3 border border-red-300 bg-red-50 rounded-md text-sm mb-4">
+            <ul className="list-disc list-inside text-red-600">
+              {Object.values(errors).map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <NotchedInput
             name="name"
@@ -109,10 +143,9 @@ export default function BrandModal({
             label="Description"
             rows={3}
             value={form.description ?? ""}
-            onChange={handleChange} // ✅ It now works perfectly!
+            onChange={handleChange}
           />
 
-          {/* New Image Upload Section */}
           <div className="space-y-2">
             <label className="text-sm font-bold">Logo</label>
             {form.imageUrl && !form.newImage && (

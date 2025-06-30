@@ -15,7 +15,7 @@ export default function BrandCard({
   slug,
 }: BrandCardProps) {
   return (
-    <Link href={`/brands/${slug}`} className="block group">
+    <Link href={`/products?brand=${slug}`} className="block group">
       <div className="relative rounded-md overflow-hidden shadow-soft">
         <img
           src={image}

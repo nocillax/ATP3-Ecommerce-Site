@@ -32,7 +32,7 @@ export default function FeaturedCategories() {
   return (
     <section className="w-full px-4 md:px-6 mt-12 mb-8">
       <div className="max-w-3xl mx-auto text-center">
-        <h2 className="font-playfair font-extrabold text-xl text-dark-gray mb-6">
+        <h2 className="text-2xl font-playfair font-bold text-dark-gray mb-6 text-center">
           Featured Categories
         </h2>
 

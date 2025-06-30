@@ -187,7 +187,12 @@ export default function Header() {
     router.push("/login");
   };
 
-  const navLinks = ["HOME", "SHOP", "CATEGORIES", "ABOUT US"];
+  const navLinks = [
+    { label: "HOME", href: "/" },
+    { label: "SHOP", href: "/products" },
+    { label: "CATEGORIES", href: "/categories" },
+    { label: "ABOUT US", href: "/about" },
+  ];
 
   return (
     <header className="w-full h-[60px] bg-mint-light shadow-nav sticky top-0 z-50">
@@ -199,10 +204,10 @@ export default function Header() {
 
         {/* Center Nav - Unchanged */}
         <nav className="hidden md:flex items-center gap-8">
-          {navLinks.map((label) => (
+          {navLinks.map(({ label, href }) => (
             <a
               key={label}
-              href="/"
+              href={href}
               className="font-ntr text-lg text-dark-gray hover:text-accent-red transition-colors"
             >
               {label}
@@ -212,9 +217,6 @@ export default function Header() {
 
         {/* Action Icons - Unchanged wrapper */}
         <div className="absolute right-4 flex items-center gap-3 md:gap-4">
-          <button className="p-2 rounded-full hover:bg-gray-100 transition">
-            <Search size={20} strokeWidth={1.2} />
-          </button>
           <Link
             href="/cart"
             className="p-2 rounded-full hover:bg-gray-100 transition relative"

@@ -40,7 +40,7 @@ export default function FeaturedProducts() {
   }
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 py-10">
+    <section className="w-full max-w-7xl mx-auto px-4 py-10 mt-8">
       {/* ✅ The heading is updated */}
       <h2 className="text-2xl font-playfair font-bold text-dark-gray mb-6 text-center">
         Featured Products

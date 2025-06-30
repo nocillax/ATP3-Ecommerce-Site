@@ -21,21 +21,45 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  const [errors, setErrors] = useState<Partial<typeof form>>({});
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  // ✅ Validation logic function
+  const validateForm = () => {
+    const newErrors: Partial<typeof form> = {};
+    if (!form.name) newErrors.name = "Full name is required.";
+    if (!form.email) {
+      newErrors.email = "Email is required.";
+    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
+      newErrors.email = "Email address is invalid.";
+    }
+    if (!form.password) {
+      newErrors.password = "Password is required.";
+    } else if (form.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters.";
+    }
+    if (form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match.";
+    }
+    return newErrors;
   };
 
   // ✅ The complete registration logic
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // 1. Client-side validation
-    if (form.password !== form.confirmPassword) {
-      toast.error("Passwords do not match.");
+    // ✅ Call validate() before submitting
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
+    setErrors({}); // Clear previous errors
 
     setIsLoading(true);
+
     try {
       // 2. Prepare the payload for the API (without confirmPassword)
       const payload = {
@@ -124,6 +148,18 @@ export default function RegisterPage() {
             onChange={handleChange}
             required
           />
+
+          {/* ✅ Validation Summary Block */}
+          {Object.keys(errors).length > 0 && (
+            <div className="p-3 border border-red-300 bg-red-50 rounded-md text-sm">
+              <ul className="list-disc list-inside text-red-600">
+                {Object.values(errors).map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <button
             type="submit"
             className="btn-dark py-2 px-4 rounded text-sm mt-2"

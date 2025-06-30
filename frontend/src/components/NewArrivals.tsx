@@ -36,21 +36,10 @@ export default function NewArrivals() {
   };
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 mt-16 relative">
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="font-playfair text-xl font-bold text-dark-gray">
-          NEW ARRIVALS
-        </h2>
-        <Link
-          href="/products"
-          className="hidden md:flex items-center gap-2 border border-dark-gray px-4 py-1.5 rounded hover:bg-dark-gray hover:text-white transition"
-        >
-          <span className="text-sm font-reem-kufi font-bold tracking-wide">
-            SHOW ALL
-          </span>
-          <ArrowRight className="w-4 h-4" />
-        </Link>
-      </div>
+    <section className="w-full max-w-7xl mx-auto px-4 mt-8 relative">
+      <h2 className="text-2xl font-playfair font-bold text-dark-gray mb-6 text-center">
+        New Arrivals
+      </h2>
 
       <div className="relative">
         <div

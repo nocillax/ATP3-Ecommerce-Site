@@ -17,9 +17,25 @@ export default function LoginPage() {
 
   // Get the fetchUser action from our auth store
   const fetchUser = useAuthStore((state) => state.fetchUser);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {}
+  );
+
+  const validateForm = () => {
+    const newErrors: { email?: string; password?: string } = {};
+    if (!email) newErrors.email = "Email is required.";
+    if (!password) newErrors.password = "Password is required.";
+    return newErrors;
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
     try {
       // 1. Call the login API endpoint
       await api.post("/auth/login", { email, password });
@@ -74,6 +90,17 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+
+          {/* ✅ Validation Summary Block */}
+          {Object.keys(errors).length > 0 && (
+            <div className="p-3 border border-red-300 bg-red-50 rounded-md text-sm">
+              <ul className="list-disc list-inside text-red-600">
+                {Object.values(errors).map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <button
             type="submit"
