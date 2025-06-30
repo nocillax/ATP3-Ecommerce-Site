@@ -7,7 +7,7 @@ import { useCartStore } from "./cartStore"; // We'll call the cart store from he
 interface AuthState {
   user: User | null;
   isLoading: boolean;
-  fetchUser: () => Promise<void>;
+  fetchUser: () => Promise<null | User>;
   logout: () => Promise<void>;
 }
 
@@ -15,13 +15,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isLoading: true,
 
-  fetchUser: async () => {
+  fetchUser: async (): Promise<User | null> => {
     set({ isLoading: true });
     try {
-      const response = await api.get("/users/me/profile");
+      const response = await api.get<User>("/users/me/profile");
       set({ user: response.data, isLoading: false });
+      return response.data;
     } catch (error) {
       set({ user: null, isLoading: false });
+      return null;
     }
   },
 

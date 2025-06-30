@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 
 const links = [
-  { href: "/admin", label: "Dashboard" },
+  { href: "/admin/hero-images", label: "Hero Images" },
   { href: "/admin/products", label: "Products" },
   { href: "/admin/brands", label: "Brands" },
   { href: "/admin/categories", label: "Categories" },
@@ -19,16 +19,6 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
 
   const { user, isLoading, fetchUser } = useAuthStore();
   const router = useRouter();
-
-  /*   useEffect(() => {
-    // Wait until the authentication check is complete
-    if (!isLoading) {
-      // If there is no user, or the user is not an admin, redirect them.
-      if (!user || user.role !== "admin") {
-        router.push("/login"); // Or redirect to homepage '/'
-      }
-    }
-  }, [user, isLoading, router]); */
 
   useEffect(() => {
     // We still fetch the user to get their details like name and role

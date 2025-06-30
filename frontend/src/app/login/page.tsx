@@ -17,6 +17,7 @@ export default function LoginPage() {
 
   // Get the fetchUser action from our auth store
   const fetchUser = useAuthStore((state) => state.fetchUser);
+
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
     {}
   );
@@ -42,12 +43,16 @@ export default function LoginPage() {
 
       // 2. ✅ THIS IS THE FIX: After successful login, fetch the user's
       //    profile to update the global state.
-      await fetchUser();
+      const user = await fetchUser();
 
       toast.success("Login successful!");
 
-      // 3. Redirect to the homepage
-      router.push("/");
+      // Step 3: Redirect based on role
+      if (user?.role === "admin") {
+        router.push("/admin/products");
+      } else {
+        router.push("/");
+      }
     } catch (error) {
       console.error("Login failed:. Please check your credentials.");
       alert("Login failed. Check console for details.");

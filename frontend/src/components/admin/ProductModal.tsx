@@ -73,6 +73,7 @@ export default function ProductModal({
     variants: [],
   };
   const [form, setForm] = useState<ModalFormState>(emptyState);
+  const [errors, setErrors] = useState<string[]>([]);
 
   /* ─────────── Populate on edit/view ─────────── */
 
@@ -122,6 +123,21 @@ export default function ProductModal({
   }, [isOpen, initialData]);
   /* ─────────── Helpers ─────────── */
   const readOnly = mode === "view";
+
+  const validateForm = (form: ModalFormState): string[] => {
+    const errors: string[] = [];
+
+    if (!form.name.trim()) errors.push("Product name is required.");
+    if (!form.brandId) errors.push("Brand must be selected.");
+    if (form.categoryIds.length === 0)
+      errors.push("At least one category must be selected.");
+    if (!form.price || isNaN(Number(form.price)))
+      errors.push("Price must be a valid number.");
+    if (!form.cost || isNaN(Number(form.cost)))
+      errors.push("Cost must be a valid number.");
+
+    return errors;
+  };
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -205,10 +221,26 @@ export default function ProductModal({
             : "Product Details"}
         </h2>
 
+        {errors.length > 0 && (
+          <div className="col-span-2 text-sm text-red-600 space-y-1 mb-2">
+            {errors.map((err, idx) => (
+              <div key={idx}>• {err}</div>
+            ))}
+          </div>
+        )}
+
         <form
           onSubmit={(e) => {
             e.preventDefault();
             if (!onSubmit) return;
+
+            const validationErrors = validateForm(form);
+            if (validationErrors.length > 0) {
+              setErrors(validationErrors);
+              return;
+            }
+
+            setErrors([]);
 
             // ✅ FINAL FIX: TRANSLATION (OUT): Strings from Form -> Numbers for API
             const dataToSend: ProductForm = {
